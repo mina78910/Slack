@@ -478,6 +478,247 @@
       .thread { display: none; }
       .search-box { display: none; }
     }
+
+    @media (max-width: 640px) {
+      body { min-width: 0; }
+
+      .app-shell,
+      .app-shell.composer-mode-shell,
+      .app-shell.dm-room-shell {
+        height: 100dvh;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .workspace-rail,
+      .thread {
+        display: none;
+      }
+
+      .sidebar {
+        min-height: 138px;
+        max-height: 38dvh;
+        border-right: 0;
+        border-bottom: 1px solid rgba(0,0,0,.22);
+      }
+
+      .team-header {
+        padding: 10px 12px 8px;
+      }
+
+      .team-row {
+        font-size: 15px;
+      }
+
+      .status-row,
+      .jump {
+        display: none;
+      }
+
+      .nav-scroll {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 10px 12px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: thin;
+      }
+
+      .nav-scroll > .nav-item,
+      .nav-scroll > .section-title,
+      .dm-list {
+        flex: 0 0 auto;
+      }
+
+      .nav-scroll > .nav-item.dim,
+      .nav-scroll > .app-section,
+      .nav-scroll > .app-item {
+        display: none;
+      }
+
+      .section-title {
+        height: 32px;
+        padding: 0 4px;
+        gap: 6px;
+      }
+
+      .section-title span:first-child {
+        display: none;
+      }
+
+      .new-dm-button {
+        width: 32px;
+        height: 32px;
+        background: rgba(255,255,255,.12);
+      }
+
+      .dm-list {
+        display: flex;
+        gap: 6px;
+      }
+
+      .nav-item {
+        height: 32px;
+        max-width: 180px;
+        border-radius: 6px;
+        padding: 0 10px;
+        background: rgba(255,255,255,.08);
+      }
+
+      .main {
+        min-height: 0;
+        border-right: 0;
+      }
+
+      .topbar {
+        min-height: 58px;
+        height: auto;
+        padding: 10px 12px;
+        gap: 10px;
+      }
+
+      .dm-title {
+        font-size: 17px;
+      }
+
+      .dm-subtitle {
+        font-size: 12px;
+      }
+
+      .top-actions {
+        gap: 10px;
+        font-size: 18px;
+      }
+
+      .top-actions span:nth-child(n+4) {
+        display: none;
+      }
+
+      .dm-menu-row {
+        height: 38px;
+        padding: 0 12px;
+        gap: 14px;
+        overflow-x: auto;
+        white-space: nowrap;
+        font-size: 13px;
+      }
+
+      .message-pane {
+        padding: 0 12px 18px;
+      }
+
+      .profile-card {
+        margin-top: 28px;
+      }
+
+      .intro {
+        margin-bottom: 22px;
+        font-size: 15px;
+      }
+
+      .message {
+        padding-right: 0;
+        margin: 16px 0;
+      }
+
+      .message-content {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .reaction-toolbar {
+        position: static;
+        display: flex;
+        width: max-content;
+        margin-top: 8px;
+        box-shadow: none;
+      }
+
+      .new-message-header {
+        min-height: 104px;
+      }
+
+      .new-message-title-row {
+        height: 54px;
+      }
+
+      .recipient-row {
+        align-items: flex-start;
+        padding: 8px 12px;
+      }
+
+      .recipient-input {
+        min-width: 0;
+      }
+
+      .member-suggestions {
+        top: 48px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-height: 48dvh;
+        overflow-y: auto;
+      }
+
+      .new-message-body {
+        padding: 12px;
+      }
+
+      .composer-shell {
+        margin: 0 8px;
+        border-radius: 8px 8px 0 0;
+      }
+
+      .dm-view > .composer-shell {
+        margin-bottom: 0;
+      }
+
+      .composer-toolbar,
+      .composer-actions {
+        overflow-x: auto;
+        gap: 10px;
+        padding: 0 10px;
+      }
+
+      .composer-action-left {
+        gap: 10px;
+        flex: 0 0 auto;
+      }
+
+      .composer-input {
+        min-height: 48px;
+        font-size: 16px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .sidebar {
+        min-height: 126px;
+      }
+
+      .team-row span:first-child {
+        max-width: calc(100vw - 82px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .nav-item {
+        max-width: 142px;
+      }
+
+      .avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 28px;
+      }
+
+      .avatar.small {
+        width: 32px;
+        height: 32px;
+        font-size: 20px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -508,15 +749,15 @@
         <div class="nav-item dim"><span class="lock">▮</span><span class="name">s001-ツールセットアップ</span></div>
         <div class="nav-item dim" style="margin-top:16px"><span class="plus">＋</span><span>チャンネルを追加する</span></div>
 
-        <div class="section-title"><span>ダイレクトメッセージ</span><button class="new-dm-button" type="button" aria-label="新規メッセージを作成">⊕</button></div>
+        <div class="section-title dm-section"><span>ダイレクトメッセージ</span><button class="new-dm-button" type="button" aria-label="新規メッセージを作成">⊕</button></div>
         <div class="dm-list">
           <div class="nav-item active" data-email="slackbot@example.com"><span style="color:#2bac76">♥</span><span>Slackbot</span></div>
           <div class="nav-item" data-email="risa.nemoto@example.com"><span class="presence"></span><span class="current-user-dm-name">根本 理沙（自分）</span></div>
         </div>
         <div class="nav-item dim" style="margin-top:18px"><span class="plus">＋</span><span>メンバーを招待</span></div>
 
-        <div class="section-title"><span>App</span><span>⊕</span></div>
-        <div class="nav-item"><span class="presence"></span><span>Google Drive</span></div>
+        <div class="section-title app-section"><span>App</span><span>⊕</span></div>
+        <div class="nav-item app-item"><span class="presence"></span><span>Google Drive</span></div>
       </nav>
     </aside>
 
