@@ -39,6 +39,59 @@
       background: #ffffff;
     }
 
+    body:not(.app-started) .app-shell,
+    body:not(.app-started) .mobile-bottom-nav { display: none; }
+
+    .start-screen {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: linear-gradient(135deg, #3f0e40, #1d0124);
+    }
+
+    body.app-started .start-screen { display: none; }
+
+    .start-card {
+      width: min(420px, 100%);
+      padding: 28px;
+      border-radius: 18px;
+      background: #ffffff;
+      box-shadow: 0 20px 60px rgba(0,0,0,.28);
+    }
+
+    .start-title { margin: 0 0 8px; font-size: 24px; font-weight: 800; }
+    .start-description { margin: 0 0 20px; color: var(--muted); line-height: 1.55; }
+    .start-label { display: block; font-weight: 700; margin-bottom: 8px; }
+    .start-input {
+      width: 100%;
+      height: 46px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 12px;
+      font: inherit;
+      font-size: 16px;
+    }
+    .security-note {
+      margin: 10px 0 18px;
+      color: #007a5a;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .start-button {
+      width: 100%;
+      height: 46px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--aubergine);
+      color: #fff;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .mobile-bottom-nav { display: none; }
+
     .app-shell {
       height: 100vh;
       display: grid;
@@ -690,7 +743,7 @@
         font-size: 13px;
       }
 
-      .message-pane { padding: 0 12px 18px; }
+      .message-pane { padding: 0 12px 92px; }
       .profile-card { margin-top: 28px; }
       .intro { margin-bottom: 22px; font-size: 15px; }
       .message { padding-right: 0; margin: 16px 0; }
@@ -721,11 +774,65 @@
       .new-message-body { padding: 12px; }
 
       .composer-shell {
-        margin: 0 8px;
-        border-radius: 8px 8px 0 0;
+        margin: 0 8px 78px;
+        border-radius: 8px;
       }
 
-      .dm-view > .composer-shell { margin-bottom: 0; }
+      .dm-view > .composer-shell { margin-bottom: 78px; }
+
+      .mobile-bottom-nav {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        z-index: 20;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) 68px;
+        gap: 8px;
+        pointer-events: none;
+      }
+
+      .mobile-nav-group,
+      .mobile-search-button {
+        pointer-events: auto;
+        min-height: 60px;
+        border: 1px solid rgba(255,255,255,.9);
+        background: rgba(255,255,255,.92);
+        box-shadow: 0 8px 24px rgba(0,0,0,.14);
+        backdrop-filter: blur(18px);
+      }
+
+      .mobile-nav-group {
+        grid-column: 1 / 5;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-radius: 999px;
+        padding: 5px;
+      }
+
+      .mobile-nav-item,
+      .mobile-search-button {
+        appearance: none;
+        border: 0;
+        color: #1d1c1d;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        background: transparent;
+        display: grid;
+        place-items: center;
+        gap: 1px;
+        cursor: pointer;
+      }
+
+      .mobile-nav-item.active {
+        color: #611f69;
+        background: #e8e0ea;
+        border-radius: 999px;
+      }
+
+      .mobile-nav-icon { font-size: 24px; line-height: 1; }
+      .mobile-search-button { border-radius: 50%; font-size: 30px; }
 
       .composer-toolbar,
       .composer-actions {
@@ -772,6 +879,17 @@
   </style>
 </head>
 <body>
+  <section class="start-screen" aria-label="開始画面">
+    <form class="start-card">
+      <h1 class="start-title">Mock Slack を開始</h1>
+      <p class="start-description">表示名を入力してDM体験を開始してください。</p>
+      <label class="start-label" for="player-name-input">あなたの名前</label>
+      <input id="player-name-input" class="start-input" type="text" autocomplete="name" placeholder="例：根本 理沙" />
+      <p class="security-note">セキュリティ考慮済み（データ保存や送信はしていない）</p>
+      <button class="start-button" type="submit">開始する</button>
+    </form>
+  </section>
+
   <div class="app-shell">
     <aside class="workspace-rail" aria-label="ワークスペース一覧">
       <div class="window-dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
@@ -904,10 +1022,20 @@
     </aside>
   </div>
 
+  <nav class="mobile-bottom-nav" aria-label="モバイルメニュー">
+    <div class="mobile-nav-group">
+      <button class="mobile-nav-item active mobile-home-button" type="button"><span class="mobile-nav-icon">⌂</span><span>ホーム</span></button>
+      <button class="mobile-nav-item mobile-dm-button" type="button"><span class="mobile-nav-icon">☏</span><span>DM</span></button>
+      <button class="mobile-nav-item" type="button"><span class="mobile-nav-icon">♧</span><span>アクティビティ</span></button>
+      <button class="mobile-nav-item" type="button"><span class="mobile-nav-icon">…</span><span>その他</span></button>
+    </div>
+    <button class="mobile-search-button" type="button" aria-label="検索">⌕</button>
+  </nav>
+
   <script>
     const currentUserEmail = "risa.nemoto@example.com";
     const currentUserIcon = "👩🏻‍💼";
-    const currentUserName = getOrAskPlayerName();
+    let currentUserName = "あなた";
 
     const organizationUsers = [
       { name: "大野 智", email: "satoshi.ohno@example.com", icon: "🎣" },
@@ -956,6 +1084,10 @@
     const dmComposerInput = document.querySelector(".dm-composer-input");
     const dmComposerSend = document.querySelector(".dm-composer-send");
     const mobileBackButton = document.querySelector(".mobile-back-button");
+    const mobileDmButton = document.querySelector(".mobile-dm-button");
+    const mobileHomeButton = document.querySelector(".mobile-home-button");
+    const startForm = document.querySelector(".start-card");
+    const playerNameInput = document.querySelector(".start-input");
     const currentUserNameLabel = document.querySelector(".current-user-name");
     const currentUserDmNameLabel = document.querySelector(".current-user-dm-name");
 
@@ -990,9 +1122,17 @@
     const unreadCounts = new Map();
     let periodicDmIndex = 0;
 
-    function getOrAskPlayerName() {
-      const enteredName = window.prompt("ゲームを開始します。あなたの名前を入力してください。", "");
-      return enteredName?.trim() || "あなた";
+    function applyPlayerName(name) {
+      currentUserName = name?.trim() || "あなた";
+      currentUserNameLabel.textContent = currentUserName;
+      currentUserDmNameLabel.textContent = `${currentUserName}（自分）`;
+      const selfUser = roomUsers.get(currentUserEmail);
+      if (selfUser) selfUser.name = `${currentUserName}（自分）`;
+      const selfDmItem = dmList.querySelector(`[data-email="${CSS.escape(currentUserEmail)}"] .name`);
+      if (selfDmItem) selfDmItem.textContent = `${currentUserName}（自分）`;
+      const slackbotMessages = directMessages.get("slackbot@example.com") || [];
+      if (slackbotMessages[0]) slackbotMessages[0].text = `@${currentUserName} さん、必要なときはいつでもお手伝いします😊`;
+      renderDmRoom(activeDmUser);
     }
 
     function getDisplaySenderName(sender) {
@@ -1312,7 +1452,30 @@
     newDmButton.addEventListener("click", () => {
       activateComposerMode();
       setMobileChatOpen(true);
+      mobileDmButton.classList.add("active");
+      mobileHomeButton.classList.remove("active");
       recipientInput.focus();
+    });
+
+    startForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      applyPlayerName(playerNameInput.value);
+      document.body.classList.add("app-started");
+      startPeriodicMentionDms();
+    });
+
+    mobileDmButton.addEventListener("click", () => {
+      activateDmMode();
+      setMobileChatOpen(false);
+      mobileDmButton.classList.add("active");
+      mobileHomeButton.classList.remove("active");
+    });
+
+    mobileHomeButton.addEventListener("click", () => {
+      activateDmMode();
+      setMobileChatOpen(false);
+      mobileHomeButton.classList.add("active");
+      mobileDmButton.classList.remove("active");
     });
 
     mobileBackButton.addEventListener("click", () => {
@@ -1333,6 +1496,8 @@
       setActiveDm(user);
       activateDmMode();
       setMobileChatOpen(true);
+      mobileDmButton.classList.add("active");
+      mobileHomeButton.classList.remove("active");
     });
 
     recipientInput.addEventListener("focus", renderSuggestions);
@@ -1389,7 +1554,6 @@
     hydratePersistedRooms();
     updateAllDmPreviews();
     renderDmRoom(activeDmUser);
-    startPeriodicMentionDms();
   </script>
 </body>
 </html>
