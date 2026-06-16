@@ -217,6 +217,17 @@
     }
 
     .message-pane { flex: 1; overflow-y: auto; padding: 0 18px 28px; }
+    .dm-menu-row {
+      height: 42px;
+      border-bottom: 1px solid #eeeeee;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      padding: 0 18px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .dm-menu-row span:first-child { color: #111; }
     .profile-card { margin-top: 175px; display: flex; gap: 12px; align-items: flex-start; }
     .avatar { width: 52px; height: 52px; border-radius: 4px; background: linear-gradient(#69c8ee, #49a9e8); display: grid; place-items: center; font-size: 34px; flex: 0 0 auto; }
     .avatar.small { width: 36px; height: 36px; font-size: 24px; }
@@ -278,8 +289,16 @@
       background: #fff;
     }
 
+    .dm-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
     .new-message-view.active { display: flex; }
     .main.composer-mode .dm-view { display: none; }
+    .main:not(.composer-mode) .new-message-view { display: none; }
 
     .new-message-header {
       min-height: 120px;
@@ -351,8 +370,10 @@
     .suggestion-name { font-weight: 700; }
     .suggestion-email { color: var(--muted); font-size: 12px; margin-top: 2px; }
 
-    .app-shell.composer-mode-shell { grid-template-columns: 60px 205px minmax(410px, 1fr); }
-    .app-shell.composer-mode-shell .thread { display: none; }
+    .app-shell.composer-mode-shell,
+    .app-shell.dm-room-shell { grid-template-columns: 60px 205px minmax(410px, 1fr); }
+    .app-shell.composer-mode-shell .thread,
+    .app-shell.dm-room-shell .thread { display: none; }
 
     .new-message-body { flex: 1; background: #f8f8f8; overflow-y: auto; padding: 18px; }
     .new-message-body .message { margin: 0 0 16px; }
@@ -396,6 +417,8 @@
       color: #007a5a;
       cursor: pointer;
     }
+
+    .dm-view > .composer-shell { margin-bottom: 12px; }
 
     @media (max-width: 900px) {
       .app-shell { grid-template-columns: 56px 205px 1fr; }
@@ -455,6 +478,7 @@
         </div>
         <div class="top-actions"><span>📞</span><span>ⓘ</span><span>⚙</span><div class="search-box">⌕ <span>検索</span></div><span>@</span><span>☆</span><span>⋮</span></div>
       </header>
+      <div class="dm-menu-row"><span>● メッセージ</span><span>♧ canvas を追加する</span><span>▱ ファイル</span><span>＋</span></div>
 
       <section class="message-pane">
         <div class="profile-card">
@@ -488,6 +512,11 @@
           </div>
         </article>
       </section>
+        <div class="composer-shell dm-composer" aria-label="ダイレクトメッセージ入力欄">
+          <div class="composer-toolbar"><strong>B</strong><em>I</em><u>U</u><s>S</s><span>🔗</span><span>1≡</span><span>•≡</span><span>|≡</span><span>&lt;/&gt;</span><span>▣</span></div>
+          <textarea class="composer-input dm-composer-input" rows="1" placeholder="メッセージを入力する"></textarea>
+          <div class="composer-actions"><div class="composer-action-left"><span>＋</span><span>Aa</span><span>☺</span><span>@</span><span>▯</span><span>🎙</span><span>□</span></div><button class="composer-send dm-composer-send" type="button" aria-label="ダイレクトメッセージを送信">▶⌄</button></div>
+        </div>
       </div>
 
       <section class="new-message-view" aria-label="新規メッセージ">
@@ -506,8 +535,8 @@
         <div class="composer-spacer"></div>
         <div class="composer-shell" aria-label="メッセージ入力欄">
           <div class="composer-toolbar"><strong>B</strong><em>I</em><u>U</u><s>S</s><span>🔗</span><span>1≡</span><span>•≡</span><span>|≡</span><span>&lt;/&gt;</span><span>▣</span></div>
-          <textarea class="composer-input" rows="1" placeholder="新しいメッセージを開始する"></textarea>
-          <div class="composer-actions"><div class="composer-action-left"><span>＋</span><span>Aa</span><span>☺</span><span>@</span><span>▯</span><span>🎙</span><span>□</span></div><button class="composer-send" type="button" aria-label="メッセージを送信">▶⌄</button></div>
+          <textarea class="composer-input new-composer-input" rows="1" placeholder="新しいメッセージを開始する"></textarea>
+          <div class="composer-actions"><div class="composer-action-left"><span>＋</span><span>Aa</span><span>☺</span><span>@</span><span>▯</span><span>🎙</span><span>□</span></div><button class="composer-send new-composer-send" type="button" aria-label="メッセージを送信">▶⌄</button></div>
         </div>
       </section>
     </main>
@@ -552,12 +581,14 @@
     const newMessageBody = document.querySelector(".new-message-body");
     const dmTitle = document.querySelector(".dm-title");
     const dmSubtitle = document.querySelector(".dm-subtitle");
-    const composerInput = document.querySelector(".composer-input");
-    const composerSend = document.querySelector(".composer-send");
+    const newComposerInput = document.querySelector(".new-composer-input");
+    const newComposerSend = document.querySelector(".new-composer-send");
+    const dmComposerInput = document.querySelector(".dm-composer-input");
+    const dmComposerSend = document.querySelector(".dm-composer-send");
 
     let selectedUser = null;
     let activeDmUser = { name: "戸田 征 🏡", icon: "👨🏻‍💼", email: "toda@example.com" };
-    const directMessages = new Map();
+    const directMessages = new Map([[activeDmUser.email, []]]);
 
     function shuffleUsers(users) {
       return [...users].sort(() => Math.random() - 0.5).slice(0, 5);
@@ -589,9 +620,22 @@
     }
 
     function activateComposerMode() {
+      selectedUser = null;
+      recipientInput.value = "";
+      newComposerInput.value = "";
+      newMessageBody.replaceChildren();
+      updateSendState();
+      appShell.classList.remove("dm-room-shell");
       appShell.classList.add("composer-mode-shell");
       main.classList.add("composer-mode");
       newMessageView.classList.add("active");
+    }
+
+    function activateDmMode() {
+      appShell.classList.remove("composer-mode-shell");
+      appShell.classList.add("dm-room-shell");
+      main.classList.remove("composer-mode");
+      newMessageView.classList.remove("active");
     }
 
     function buildDirectMessageRoom(user) {
@@ -612,44 +656,66 @@
       dmTitle.textContent = user.name;
       dmSubtitle.textContent = "☆ 0 離席中";
       newMessageBody.dataset.room = user.email;
+      renderDmRoom(user);
+    }
+
+    function renderDmRoom(user) {
+      messagePane.replaceChildren();
+      const profile = createElement("div", "profile-card");
+      profile.append(createElement("div", "avatar", user.icon || "👤"));
+      const details = createElement("div");
+      details.append(createElement("div", "person-name", user.name));
+      details.append(createElement("div", null, user.email || "株式会社Lipple"));
+      profile.append(details);
+      const intro = createElement("p", "intro");
+      intro.append(createElement("span", "tag", `@${user.name}`));
+      intro.append(document.createTextNode(" さんとのダイレクトメッセージ (DM) です。"));
+      messagePane.append(profile, intro);
+      (directMessages.get(user.email) || []).forEach((message) => {
+        messagePane.append(createMessageElement(message.text, message.sentAt));
+      });
+      messagePane.scrollTop = messagePane.scrollHeight;
     }
 
     function ensureDirectMessageRoom() {
       if (!selectedUser) return false;
       buildDirectMessageRoom(selectedUser);
       setActiveDm(selectedUser);
+      activateDmMode();
+      dmComposerInput.focus();
       return true;
     }
 
-    function createMessageElement(text) {
+    function createMessageElement(text, sentAt = new Date()) {
       const message = createElement("article", "message");
       const avatar = createElement("div", "avatar small", "👩🏻‍💼");
       const content = createElement("div", "message-content");
       const header = createElement("div");
       header.append(createElement("span", "person-name", "根本 理沙"));
-      header.append(createElement("span", "time", new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })));
+      header.append(createElement("span", "time", sentAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })));
       content.append(header, createElement("div", null, text));
       message.append(avatar, content);
       return message;
     }
 
-    function renderSentMessage(text) {
-      messagePane.append(createMessageElement(text));
+    function renderSentMessage(text, sentAt) {
+      messagePane.append(createMessageElement(text, sentAt));
       messagePane.scrollTop = messagePane.scrollHeight;
-      newMessageBody.append(createMessageElement(text));
-      newMessageBody.scrollTop = newMessageBody.scrollHeight;
     }
 
     function updateSendState() {
-      composerSend.classList.toggle("ready", Boolean(selectedUser && composerInput.value.trim()));
+      newComposerSend.classList.toggle("ready", Boolean(selectedUser && newComposerInput.value.trim()));
+      dmComposerSend.classList.toggle("ready", Boolean(activeDmUser && dmComposerInput.value.trim()));
     }
 
-    function sendMessage() {
-      const text = composerInput.value.trim();
-      if (!text || !ensureDirectMessageRoom()) return;
-      directMessages.get(activeDmUser.email).push({ sender: "根本 理沙", text, sentAt: new Date() });
-      renderSentMessage(text);
-      composerInput.value = "";
+    function sendMessage(input = dmComposerInput) {
+      const text = input.value.trim();
+      if (!text) return;
+      if (input === newComposerInput && !ensureDirectMessageRoom()) return;
+      const sentAt = new Date();
+      directMessages.get(activeDmUser.email).push({ sender: "根本 理沙", text, sentAt });
+      renderSentMessage(text, sentAt);
+      input.value = "";
       updateSendState();
     }
 
@@ -670,16 +736,25 @@
       updateSendState();
     });
 
-    composerInput.addEventListener("focus", ensureDirectMessageRoom);
-    composerInput.addEventListener("click", ensureDirectMessageRoom);
-    composerInput.addEventListener("input", updateSendState);
-    composerInput.addEventListener("keydown", (event) => {
+    newComposerInput.addEventListener("focus", ensureDirectMessageRoom);
+    newComposerInput.addEventListener("click", ensureDirectMessageRoom);
+    newComposerInput.addEventListener("input", updateSendState);
+    newComposerInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
-        sendMessage();
+        sendMessage(newComposerInput);
       }
     });
-    composerSend.addEventListener("click", sendMessage);
+    newComposerSend.addEventListener("click", () => sendMessage(newComposerInput));
+
+    dmComposerInput.addEventListener("input", updateSendState);
+    dmComposerInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage(dmComposerInput);
+      }
+    });
+    dmComposerSend.addEventListener("click", () => sendMessage(dmComposerInput));
 
     document.addEventListener("click", (event) => {
       if (!event.target.closest(".recipient-row")) {
