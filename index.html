@@ -1,1 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock Slack</title>
+  <style>
+    :root {
+      --aubergine: #3f0e40;
+      --aubergine-dark: #1d0124;
+      --aubergine-light: #522653;
+      --active-blue: #1164a3;
+      --text: #1d1c1d;
+      --muted: #616061;
+      --border: #dddddd;
+      --accent: #ff6978;
+    }
 
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+      color: var(--text);
+      background: #ffffff;
+    }
+
+    .app-shell {
+      height: 100vh;
+      display: grid;
+      grid-template-columns: 60px 205px minmax(410px, 1fr) 330px;
+      overflow: hidden;
+    }
+
+    .workspace-rail {
+      background: var(--aubergine-dark);
+      color: white;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 4px;
+    }
+
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot.red { background: #ff605c; }
+    .dot.yellow { background: #ffbd44; }
+    .dot.green { background: #00ca4e; }
+
+    .workspace-icon,
+    .add-workspace {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+    }
+
+    .workspace-icon {
+      background: #ffffff;
+      color: #c3193e;
+      border: 2px solid rgba(255,255,255,.8);
+      font-size: 11px;
+    }
+
+    .workspace-icon.selected { outline: 3px solid #ffffff; }
+
+    .add-workspace {
+      border: 1px solid rgba(255,255,255,.35);
+      color: white;
+      font-size: 26px;
+      background: rgba(255,255,255,.08);
+    }
+
+    .sidebar {
+      background: var(--aubergine);
+      color: #e9dbe9;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(0,0,0,.18);
+      overflow: hidden;
+    }
+
+    .team-header {
+      padding: 22px 12px 9px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+
+    .team-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-weight: 800;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .status-row {
+      margin-top: 4px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .online-dot { width: 9px; height: 9px; background: #2bac76; border-radius: 50%; display: inline-block; }
+
+    .jump {
+      margin-top: 14px;
+      height: 28px;
+      border-radius: 4px;
+      background: var(--aubergine-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 7px;
+      font-size: 13px;
+    }
+
+    .nav-scroll {
+      padding: 10px 0 20px;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+
+    .section-title {
+      padding: 12px 12px 6px 14px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-item {
+      height: 24px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 12px 0 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-item .name { overflow: hidden; text-overflow: ellipsis; }
+    .nav-item.active { background: var(--active-blue); color: white; }
+    .nav-item.dim { color: #cbb8cb; }
+    .lock { font-size: 11px; opacity: .9; }
+    .plus { opacity: .85; }
+    .presence { width: 9px; height: 9px; border-radius: 50%; background: #2bac76; flex: 0 0 auto; }
+    .presence.away { background: transparent; border: 1px solid #b79ab7; }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      border-right: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .topbar {
+      height: 72px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      gap: 18px;
+    }
+
+    .dm-title { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+    .dm-subtitle { color: var(--muted); font-size: 13px; margin-top: 3px; }
+    .top-actions { display: flex; align-items: center; gap: 16px; color: #555; font-size: 20px; }
+
+    .search-box {
+      width: 210px;
+      height: 32px;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #777;
+      padding: 0 10px;
+      font-size: 14px;
+    }
+
+    .message-pane { flex: 1; overflow-y: auto; padding: 0 18px 28px; }
+    .profile-card { margin-top: 175px; display: flex; gap: 12px; align-items: flex-start; }
+    .avatar { width: 52px; height: 52px; border-radius: 4px; background: linear-gradient(#69c8ee, #49a9e8); display: grid; place-items: center; font-size: 34px; flex: 0 0 auto; }
+    .avatar.small { width: 36px; height: 36px; font-size: 24px; }
+    .person-name { font-weight: 800; }
+    .tag { color: #1264a3; background: #e7f5ff; border-radius: 3px; padding: 0 2px; }
+    .intro { margin: 12px 0 32px; font-size: 17px; line-height: 1.45; }
+
+    .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: #222; font-size: 13px; font-weight: 700; }
+    .divider::before, .divider::after { content: ""; height: 1px; background: var(--border); flex: 1; }
+
+    .message { display: flex; gap: 10px; margin: 18px 0; }
+    .message-content { line-height: 1.4; }
+    .time { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 4px; }
+    .reply { margin-top: 6px; color: #1264a3; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .reply .mini-face { width: 24px; height: 24px; border-radius: 4px; background: #64c8ee; display: grid; place-items: center; }
+
+    .thread {
+      border-left: 4px solid var(--accent);
+      border-top: 4px solid var(--accent);
+      display: flex;
+      flex-direction: column;
+      background: white;
+    }
+
+    .thread-header {
+      height: 64px;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .thread-title { font-size: 20px; font-weight: 800; }
+    .thread-sub { color: var(--muted); font-size: 13px; }
+    .close { font-size: 24px; color: #555; }
+    .thread-body { padding: 12px 16px; }
+    .thread-message { display: flex; gap: 10px; font-size: 13px; }
+    .thread-text { margin-top: 4px; font-size: 14px; }
+    .reply-box {
+      margin-top: 16px;
+      height: 40px;
+      border: 1px solid #9a9a9a;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      color: #888;
+    }
+    .send-row { margin-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #555; font-size: 13px; }
+    .checkbox { width: 14px; height: 14px; border: 1px solid #ccc; border-radius: 2px; display: inline-block; vertical-align: -2px; margin-right: 8px; }
+    .send-button { border: 0; border-radius: 4px; background: #ddd; padding: 7px 16px; font-weight: 700; color: #555; }
+
+    @media (max-width: 900px) {
+      .app-shell { grid-template-columns: 56px 205px 1fr; }
+      .thread { display: none; }
+      .search-box { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="workspace-rail" aria-label="ワークスペース一覧">
+      <div class="window-dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+      <div class="workspace-icon selected">LIPPLE</div>
+      <div class="workspace-icon">LIPPLE</div>
+      <div class="workspace-icon">lp</div>
+      <div class="add-workspace">+</div>
+    </aside>
+
+    <aside class="sidebar" aria-label="サイドバー">
+      <div class="team-header">
+        <div class="team-row"><span>株式会社ソーシ...</span><span>♧ 🔔</span></div>
+        <div class="status-row"><span class="online-dot"></span><span>根本 理沙</span></div>
+        <div class="jump"><span>☰ 会話を移動</span><span>‹ ›</span></div>
+      </div>
+      <nav class="nav-scroll">
+        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1000-lipple</span></div>
+        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1100-ウェブサイト</span></div>
+        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1101-株式会社ソーシエ...</span></div>
+        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1102-保育事業部-ウェブ...</span></div>
+        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1103-介護事業部-ウェブ...</span></div>
+        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1200-システム</span></div>
+        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1300-採用</span></div>
+        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1900-インターン</span></div>
+        <div class="nav-item dim"><span class="lock">▮</span><span class="name">s001-ツールセットアップ</span></div>
+        <div class="nav-item dim" style="margin-top:16px"><span class="plus">＋</span><span>チャンネルを追加する</span></div>
+
+        <div class="section-title"><span>ダイレクトメッセージ</span><span>⊕</span></div>
+        <div class="nav-item"><span style="color:#2bac76">♥</span><span>Slackbot</span></div>
+        <div class="nav-item"><span class="presence"></span><span>根本 理沙（自分）</span></div>
+        <div class="nav-item active"><span class="presence away"></span><span>戸田 征 🏡</span></div>
+        <div class="nav-item"><span class="presence away"></span><span>渡邊 茂</span></div>
+        <div class="nav-item dim" style="margin-top:18px"><span class="plus">＋</span><span>メンバーを招待</span></div>
+
+        <div class="section-title"><span>App</span><span>⊕</span></div>
+        <div class="nav-item"><span class="presence"></span><span>Google Drive</span></div>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="dm-title">戸田 征 🏡</div>
+          <div class="dm-subtitle">☆ 0 離席中</div>
+        </div>
+        <div class="top-actions"><span>📞</span><span>ⓘ</span><span>⚙</span><div class="search-box">⌕ <span>検索</span></div><span>@</span><span>☆</span><span>⋮</span></div>
+      </header>
+
+      <section class="message-pane">
+        <div class="profile-card">
+          <div class="avatar">👨🏻‍💼</div>
+          <div>
+            <div class="person-name">戸田 征 ○</div>
+            <div>🏡 Working remotely</div>
+            <div>株式会社Lipple</div>
+          </div>
+        </div>
+        <p class="intro"><span class="tag">@戸田 征</span> さんとの記念すべき第一回目のダイレクトメッセージ (DM) です。</p>
+
+        <div class="divider">8月25日(日)</div>
+        <article class="message">
+          <div class="avatar small">👨🏻‍💼</div>
+          <div class="message-content">
+            <div><span class="person-name">戸田 征 🏡</span><span class="time">17:29</span></div>
+            <div><span class="tag">@根本 理沙</span></div>
+            <div>画像をお送りいたします。</div>
+            <div class="reply"><span class="mini-face">👨🏻‍💼</span>1件の返信 <span style="color:#777;font-weight:400">4日前</span></div>
+          </div>
+        </article>
+
+        <div class="divider">今日</div>
+        <article class="message">
+          <div class="avatar small">👨🏻‍💼</div>
+          <div class="message-content">
+            <div><span class="person-name">戸田 征 🏡</span><span class="time">15:41</span></div>
+            <div><span class="tag">@根本 理沙</span></div>
+            <div>よろしくお願い申し上げます。</div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <aside class="thread" aria-label="スレッド">
+      <div class="thread-header">
+        <div><div class="thread-title">スレッド</div><div class="thread-sub">戸田 征</div></div>
+        <div class="close">×</div>
+      </div>
+      <div class="thread-body">
+        <article class="thread-message">
+          <div class="avatar small">👨🏻‍💼</div>
+          <div>
+            <div><span class="person-name">戸田 征 🏡</span><span class="time">今日 15:41</span></div>
+            <div><span class="tag">@根本 理沙</span></div>
+            <div class="thread-text">よろしくお願い申し上げます。</div>
+          </div>
+        </article>
+        <div class="reply-box"><span>🔗　返信する...</span><span>☺</span></div>
+        <div class="send-row"><span><span class="checkbox"></span>ダイレクトメッセージでも送信する ⓘ</span><button class="send-button">送信</button></div>
+      </div>
+    </aside>
+  </div>
+</body>
+</html>
