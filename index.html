@@ -3,6 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    (function () {
+      const viewport = document.querySelector('meta[name="viewport"]');
+      const isTouchAppleDevice = navigator.maxTouchPoints > 1;
+      const usesDesktopSafariIdentity = /Macintosh/.test(navigator.userAgent);
+      const isPhoneSizedScreen = Math.min(screen.width, screen.height) <= 430;
+
+      if (viewport && isTouchAppleDevice && usesDesktopSafariIdentity && isPhoneSizedScreen) {
+        viewport.setAttribute("content", "width=1024");
+        document.documentElement.classList.add("desktop-requested");
+      }
+    })();
+  </script>
   <title>Mock Slack</title>
   <style>
     :root {
