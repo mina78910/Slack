@@ -176,6 +176,18 @@
     .dm-list .nav-item { cursor: pointer; }
 
     .nav-item .name { overflow: hidden; text-overflow: ellipsis; }
+    .dm-preview { display: none; }
+    .mobile-back-button {
+      display: none;
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: #1d1c1d;
+      font: inherit;
+      font-size: 22px;
+      padding: 6px 8px 6px 0;
+      cursor: pointer;
+    }
     .nav-item.unread { color: #ffffff; font-weight: 800; }
     .unread-badge {
       margin-left: auto;
@@ -487,7 +499,7 @@
       .app-shell.dm-room-shell {
         height: 100dvh;
         grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: auto minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr);
       }
 
       .workspace-rail,
@@ -496,39 +508,50 @@
       }
 
       .sidebar {
-        min-height: 138px;
-        max-height: 38dvh;
+        min-height: 0;
+        height: 100dvh;
+        max-height: none;
         border-right: 0;
-        border-bottom: 1px solid rgba(0,0,0,.22);
+        border-bottom: 0;
+      }
+
+      .app-shell.mobile-chat-open .sidebar {
+        display: none;
+      }
+
+      .main {
+        display: none;
+        min-height: 0;
+        border-right: 0;
+      }
+
+      .app-shell.mobile-chat-open .main,
+      .app-shell.composer-mode-shell .main {
+        display: flex;
       }
 
       .team-header {
-        padding: 10px 12px 8px;
+        flex: 0 0 auto;
+        padding: 14px 16px 12px;
       }
 
       .team-row {
-        font-size: 15px;
+        font-size: 18px;
       }
 
-      .status-row,
+      .status-row {
+        margin-top: 6px;
+      }
+
       .jump {
         display: none;
       }
 
       .nav-scroll {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 10px 12px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        scrollbar-width: thin;
-      }
-
-      .nav-scroll > .nav-item,
-      .nav-scroll > .section-title,
-      .dm-list {
-        flex: 0 0 auto;
+        flex: 1;
+        min-height: 0;
+        padding: 0;
+        overflow-y: auto;
       }
 
       .nav-scroll > .nav-item.dim,
@@ -538,13 +561,13 @@
       }
 
       .section-title {
-        height: 32px;
-        padding: 0 4px;
-        gap: 6px;
+        height: 44px;
+        padding: 0 16px;
+        border-top: 1px solid rgba(255,255,255,.1);
       }
 
       .section-title span:first-child {
-        display: none;
+        display: inline;
       }
 
       .new-dm-button {
@@ -554,21 +577,67 @@
       }
 
       .dm-list {
-        display: flex;
-        gap: 6px;
+        display: block;
       }
 
-      .nav-item {
-        height: 32px;
-        max-width: 180px;
-        border-radius: 6px;
-        padding: 0 10px;
+      .dm-list .nav-item {
+        position: relative;
+        display: grid;
+        grid-template-columns: 18px minmax(0, 1fr) auto;
+        grid-template-rows: auto auto;
+        column-gap: 10px;
+        row-gap: 4px;
+        height: auto;
+        min-height: 72px;
+        padding: 12px 16px;
+        border-radius: 0;
+        background: transparent;
+        border-top: 1px solid rgba(255,255,255,.08);
+      }
+
+      .dm-list .nav-item.active {
         background: rgba(255,255,255,.08);
       }
 
-      .main {
-        min-height: 0;
-        border-right: 0;
+      .dm-list .nav-item > :first-child {
+        grid-row: 1 / span 2;
+        align-self: center;
+      }
+
+      .dm-list .nav-item .name,
+      .dm-list .nav-item > span:not(.presence):not(.unread-badge):not(.dm-preview):not([style]) {
+        grid-column: 2;
+        min-width: 0;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 800;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .dm-preview {
+        display: block;
+        grid-column: 2 / 4;
+        min-width: 0;
+        color: #d8c8d8;
+        font-size: 13px;
+        font-weight: 400;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .unread-badge {
+        grid-column: 3;
+        grid-row: 1;
+        align-self: center;
+        margin-left: 8px;
+      }
+
+      .mobile-back-button {
+        display: inline-grid;
+        place-items: center;
+        flex: 0 0 auto;
       }
 
       .topbar {
@@ -578,22 +647,26 @@
         gap: 10px;
       }
 
-      .dm-title {
-        font-size: 17px;
+      .topbar > div:first-of-type {
+        min-width: 0;
+        flex: 1;
       }
 
-      .dm-subtitle {
-        font-size: 12px;
+      .dm-title {
+        font-size: 17px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
+
+      .dm-subtitle { font-size: 12px; }
 
       .top-actions {
         gap: 10px;
         font-size: 18px;
       }
 
-      .top-actions span:nth-child(n+4) {
-        display: none;
-      }
+      .top-actions span:nth-child(n+4) { display: none; }
 
       .dm-menu-row {
         height: 38px;
@@ -604,28 +677,11 @@
         font-size: 13px;
       }
 
-      .message-pane {
-        padding: 0 12px 18px;
-      }
-
-      .profile-card {
-        margin-top: 28px;
-      }
-
-      .intro {
-        margin-bottom: 22px;
-        font-size: 15px;
-      }
-
-      .message {
-        padding-right: 0;
-        margin: 16px 0;
-      }
-
-      .message-content {
-        min-width: 0;
-        overflow-wrap: anywhere;
-      }
+      .message-pane { padding: 0 12px 18px; }
+      .profile-card { margin-top: 28px; }
+      .intro { margin-bottom: 22px; font-size: 15px; }
+      .message { padding-right: 0; margin: 16px 0; }
+      .message-content { min-width: 0; overflow-wrap: anywhere; }
 
       .reaction-toolbar {
         position: static;
@@ -635,22 +691,10 @@
         box-shadow: none;
       }
 
-      .new-message-header {
-        min-height: 104px;
-      }
-
-      .new-message-title-row {
-        height: 54px;
-      }
-
-      .recipient-row {
-        align-items: flex-start;
-        padding: 8px 12px;
-      }
-
-      .recipient-input {
-        min-width: 0;
-      }
+      .new-message-header { min-height: 104px; }
+      .new-message-title-row { height: 54px; }
+      .recipient-row { align-items: flex-start; padding: 8px 12px; }
+      .recipient-input { min-width: 0; }
 
       .member-suggestions {
         top: 48px;
@@ -661,18 +705,14 @@
         overflow-y: auto;
       }
 
-      .new-message-body {
-        padding: 12px;
-      }
+      .new-message-body { padding: 12px; }
 
       .composer-shell {
         margin: 0 8px;
         border-radius: 8px 8px 0 0;
       }
 
-      .dm-view > .composer-shell {
-        margin-bottom: 0;
-      }
+      .dm-view > .composer-shell { margin-bottom: 0; }
 
       .composer-toolbar,
       .composer-actions {
@@ -693,18 +733,15 @@
     }
 
     @media (max-width: 420px) {
-      .sidebar {
-        min-height: 126px;
-      }
-
       .team-row span:first-child {
         max-width: calc(100vw - 82px);
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
-      .nav-item {
-        max-width: 142px;
+      .dm-list .nav-item {
+        min-height: 68px;
+        padding: 11px 14px;
       }
 
       .avatar {
@@ -751,8 +788,8 @@
 
         <div class="section-title dm-section"><span>ダイレクトメッセージ</span><button class="new-dm-button" type="button" aria-label="新規メッセージを作成">⊕</button></div>
         <div class="dm-list">
-          <div class="nav-item active" data-email="slackbot@example.com"><span style="color:#2bac76">♥</span><span>Slackbot</span></div>
-          <div class="nav-item" data-email="risa.nemoto@example.com"><span class="presence"></span><span class="current-user-dm-name">根本 理沙（自分）</span></div>
+          <div class="nav-item active" data-email="slackbot@example.com"><span style="color:#2bac76">♥</span><span class="name">Slackbot</span><span class="dm-preview">必要なときはいつでもお手伝いします😊</span></div>
+          <div class="nav-item" data-email="risa.nemoto@example.com"><span class="presence"></span><span class="name current-user-dm-name">根本 理沙（自分）</span><span class="dm-preview">自分用のメモとして使えます</span></div>
         </div>
         <div class="nav-item dim" style="margin-top:18px"><span class="plus">＋</span><span>メンバーを招待</span></div>
 
@@ -764,6 +801,7 @@
     <main class="main">
       <div class="dm-view">
       <header class="topbar">
+        <button class="mobile-back-button" type="button" aria-label="DM一覧に戻る">‹</button>
         <div>
           <div class="dm-title">Slackbot</div>
           <div class="dm-subtitle">☆ 0 離席中</div>
@@ -904,6 +942,7 @@
     const newComposerSend = document.querySelector(".new-composer-send");
     const dmComposerInput = document.querySelector(".dm-composer-input");
     const dmComposerSend = document.querySelector(".dm-composer-send");
+    const mobileBackButton = document.querySelector(".mobile-back-button");
     const currentUserNameLabel = document.querySelector(".current-user-name");
     const currentUserDmNameLabel = document.querySelector(".current-user-dm-name");
 
@@ -1021,12 +1060,22 @@
       if (!dmList.querySelector(`[data-email="${CSS.escape(user.email)}"]`)) {
         const item = createElement("div", "nav-item");
         item.dataset.email = user.email;
-        item.append(createElement("span", "presence away"), createElement("span", "name", user.name), createElement("span", "unread-badge", "0"));
+        item.append(
+          createElement("span", "presence away"),
+          createElement("span", "name", user.name),
+          createElement("span", "dm-preview", getLatestDmPreview(user.email)),
+          createElement("span", "unread-badge", "0")
+        );
         dmList.append(item);
       }
       saveRooms();
       saveMessages();
       updateUnreadBadge(user.email);
+      updateDmPreview(user.email);
+    }
+
+    function setMobileChatOpen(isOpen) {
+      appShell.classList.toggle("mobile-chat-open", isOpen);
     }
 
     function setActiveDm(user) {
@@ -1131,6 +1180,7 @@
       directMessages.get(activeDmUser.email).push(messageData);
       saveMessages();
       renderSentMessage(messageData);
+      updateDmPreview(activeDmUser.email);
       input.value = "";
       updateSendState();
       scheduleAutoReaction(activeDmUser.email, messageData.id);
@@ -1169,6 +1219,7 @@
       });
       directMessages.get(user.email).push(messageData);
       saveMessages();
+      updateDmPreview(user.email);
       if (activeDmUser.email === user.email && !main.classList.contains("composer-mode")) {
         renderSentMessage(messageData);
       } else {
@@ -1189,6 +1240,34 @@
       }
       badge.textContent = String(count);
       badge.setAttribute("aria-label", `未読メッセージ ${count} 件`);
+    }
+
+    function getLatestDmPreview(email) {
+      const messages = directMessages.get(email) || [];
+      const latestMessage = messages.at(-1);
+      if (!latestMessage) return "まだメッセージはありません";
+      const prefix = latestMessage.sender === currentUserEmail ? "自分: " : "";
+      return `${prefix}${latestMessage.text}`;
+    }
+
+    function updateDmPreview(email) {
+      const item = dmList.querySelector(`[data-email="${CSS.escape(email)}"]`);
+      if (!item) return;
+      let preview = item.querySelector(".dm-preview");
+      if (!preview) {
+        preview = createElement("span", "dm-preview");
+        const badge = item.querySelector(".unread-badge");
+        if (badge) {
+          item.insertBefore(preview, badge);
+        } else {
+          item.append(preview);
+        }
+      }
+      preview.textContent = getLatestDmPreview(email);
+    }
+
+    function updateAllDmPreviews() {
+      dmList.querySelectorAll(".nav-item[data-email]").forEach((item) => updateDmPreview(item.dataset.email));
     }
 
     function insertActiveUserMention(input) {
@@ -1219,7 +1298,16 @@
 
     newDmButton.addEventListener("click", () => {
       activateComposerMode();
+      setMobileChatOpen(true);
       recipientInput.focus();
+    });
+
+    mobileBackButton.addEventListener("click", () => {
+      setMobileChatOpen(false);
+      main.classList.remove("composer-mode");
+      newMessageView.classList.remove("active");
+      appShell.classList.remove("composer-mode-shell");
+      appShell.classList.add("dm-room-shell");
     });
 
     dmList.addEventListener("click", (event) => {
@@ -1231,6 +1319,7 @@
       buildDirectMessageRoom(user);
       setActiveDm(user);
       activateDmMode();
+      setMobileChatOpen(true);
     });
 
     recipientInput.addEventListener("focus", renderSuggestions);
@@ -1285,6 +1374,7 @@
     });
 
     hydratePersistedRooms();
+    updateAllDmPreviews();
     renderDmRoom(activeDmUser);
     startPeriodicMentionDms();
   </script>
