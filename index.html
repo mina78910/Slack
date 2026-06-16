@@ -173,6 +173,8 @@
       text-overflow: ellipsis;
     }
 
+    .dm-list .nav-item { cursor: pointer; }
+
     .nav-item .name { overflow: hidden; text-overflow: ellipsis; }
     .nav-item.active { background: var(--active-blue); color: white; }
     .nav-item.dim { color: #cbb8cb; }
@@ -457,10 +459,10 @@
 
         <div class="section-title"><span>ダイレクトメッセージ</span><button class="new-dm-button" type="button" aria-label="新規メッセージを作成">⊕</button></div>
         <div class="dm-list">
-          <div class="nav-item"><span style="color:#2bac76">♥</span><span>Slackbot</span></div>
-          <div class="nav-item"><span class="presence"></span><span>根本 理沙（自分）</span></div>
-          <div class="nav-item active"><span class="presence away"></span><span>戸田 征 🏡</span></div>
-          <div class="nav-item"><span class="presence away"></span><span>渡邊 茂</span></div>
+          <div class="nav-item" data-email="slackbot@example.com"><span style="color:#2bac76">♥</span><span>Slackbot</span></div>
+          <div class="nav-item" data-email="risa.nemoto@example.com"><span class="presence"></span><span>根本 理沙（自分）</span></div>
+          <div class="nav-item active" data-email="toda@example.com"><span class="presence away"></span><span>戸田 征 🏡</span></div>
+          <div class="nav-item" data-email="shigeru.watanabe@example.com"><span class="presence away"></span><span>渡邊 茂</span></div>
         </div>
         <div class="nav-item dim" style="margin-top:18px"><span class="plus">＋</span><span>メンバーを招待</span></div>
 
@@ -569,6 +571,15 @@
       { name: "二宮 和也", email: "kazunari.ninomiya@example.com", icon: "🎮" },
       { name: "松本 潤", email: "jun.matsumoto@example.com", icon: "✨" },
     ];
+    const defaultDmUsers = [
+      { name: "Slackbot", email: "slackbot@example.com", icon: "🤖" },
+      { name: "根本 理沙（自分）", email: "risa.nemoto@example.com", icon: "👩🏻‍💼" },
+      { name: "戸田 征 🏡", email: "toda@example.com", icon: "👨🏻‍💼" },
+      { name: "渡邊 茂", email: "shigeru.watanabe@example.com", icon: "👤" },
+    ];
+    const allKnownUsers = [...defaultDmUsers, ...organizationUsers];
+    const dmMessagesStorageKey = "mock-slack-direct-messages";
+    const dmRoomsStorageKey = "mock-slack-direct-message-rooms";
 
     const appShell = document.querySelector(".app-shell");
     const main = document.querySelector(".main");
@@ -588,7 +599,38 @@
 
     let selectedUser = null;
     let activeDmUser = { name: "戸田 征 🏡", icon: "👨🏻‍💼", email: "toda@example.com" };
-    const directMessages = new Map([[activeDmUser.email, []]]);
+    const savedRooms = loadFromStorage(dmRoomsStorageKey, []);
+    const roomUsers = new Map([...allKnownUsers, ...savedRooms].map((user) => [user.email, user]));
+    const directMessages = new Map(
+      Object.entries(loadFromStorage(dmMessagesStorageKey, {})).map(([email, messages]) => [
+        email,
+        messages.map((message) => ({ ...message, sentAt: new Date(message.sentAt) })),
+      ])
+    );
+
+    function loadFromStorage(key, fallback) {
+      try {
+        return JSON.parse(localStorage.getItem(key)) || fallback;
+      } catch (_error) {
+        return fallback;
+      }
+    }
+
+    function saveMessages() {
+      const serializableMessages = Object.fromEntries(
+        [...directMessages.entries()].map(([email, messages]) => [
+          email,
+          messages.map((message) => ({ ...message, sentAt: message.sentAt.toISOString() })),
+        ])
+      );
+      localStorage.setItem(dmMessagesStorageKey, JSON.stringify(serializableMessages));
+    }
+
+    function saveRooms() {
+      const defaultEmails = new Set(defaultDmUsers.map((user) => user.email));
+      const customRooms = [...roomUsers.values()].filter((user) => !defaultEmails.has(user.email));
+      localStorage.setItem(dmRoomsStorageKey, JSON.stringify(customRooms));
+    }
 
     function shuffleUsers(users) {
       return [...users].sort(() => Math.random() - 0.5).slice(0, 5);
@@ -639,16 +681,21 @@
     }
 
     function buildDirectMessageRoom(user) {
-      if (directMessages.has(user.email)) return;
-      directMessages.set(user.email, []);
-
-      const item = createElement("div", "nav-item");
-      item.dataset.email = user.email;
-      item.append(createElement("span", "presence away"), createElement("span", "name", user.name));
-      dmList.append(item);
+      roomUsers.set(user.email, user);
+      if (!directMessages.has(user.email)) directMessages.set(user.email, []);
+      if (!dmList.querySelector(`[data-email="${CSS.escape(user.email)}"]`)) {
+        const item = createElement("div", "nav-item");
+        item.dataset.email = user.email;
+        item.append(createElement("span", "presence away"), createElement("span", "name", user.name));
+        dmList.append(item);
+      }
+      saveRooms();
+      saveMessages();
     }
 
     function setActiveDm(user) {
+      roomUsers.set(user.email, user);
+      if (!directMessages.has(user.email)) directMessages.set(user.email, []);
       activeDmUser = user;
       document.querySelectorAll(".dm-list .nav-item").forEach((item) => {
         item.classList.toggle("active", item.dataset.email === user.email);
@@ -714,14 +761,30 @@
       if (input === newComposerInput && !ensureDirectMessageRoom()) return;
       const sentAt = new Date();
       directMessages.get(activeDmUser.email).push({ sender: "根本 理沙", text, sentAt });
+      saveMessages();
       renderSentMessage(text, sentAt);
       input.value = "";
       updateSendState();
     }
 
+    function hydratePersistedRooms() {
+      savedRooms.forEach((user) => buildDirectMessageRoom(user));
+    }
+
     newDmButton.addEventListener("click", () => {
       activateComposerMode();
       recipientInput.focus();
+    });
+
+    dmList.addEventListener("click", (event) => {
+      const item = event.target.closest(".nav-item");
+      if (!item?.dataset.email) return;
+      const user = roomUsers.get(item.dataset.email);
+      if (!user) return;
+      selectedUser = user;
+      buildDirectMessageRoom(user);
+      setActiveDm(user);
+      activateDmMode();
     });
 
     recipientInput.addEventListener("focus", renderSuggestions);
@@ -761,6 +824,9 @@
         suggestions.classList.remove("visible");
       }
     });
+
+    hydratePersistedRooms();
+    if (directMessages.has(activeDmUser.email)) renderDmRoom(activeDmUser);
   </script>
 </body>
 </html>
