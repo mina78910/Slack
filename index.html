@@ -141,6 +141,27 @@
       align-items: center;
     }
 
+    .new-dm-button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font: inherit;
+      line-height: 1;
+    }
+
+    .new-dm-button:hover,
+    .new-dm-button:focus-visible {
+      background: rgba(255,255,255,.18);
+      outline: none;
+    }
+
     .nav-item {
       height: 24px;
       display: flex;
@@ -249,6 +270,107 @@
     .checkbox { width: 14px; height: 14px; border: 1px solid #ccc; border-radius: 2px; display: inline-block; vertical-align: -2px; margin-right: 8px; }
     .send-button { border: 0; border-radius: 4px; background: #ddd; padding: 7px 16px; font-weight: 700; color: #555; }
 
+    .new-message-view {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      min-width: 0;
+      background: #fff;
+    }
+
+    .new-message-view.active { display: flex; }
+    .main.composer-mode .dm-view { display: none; }
+
+    .new-message-header {
+      min-height: 120px;
+      border-bottom: 1px solid #d5d5d5;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      background: #fff;
+    }
+
+    .new-message-title-row {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+    }
+
+    .new-message-title { font-size: 18px; font-weight: 800; }
+    .new-message-more { color: #555; font-size: 24px; letter-spacing: 1px; }
+
+    .recipient-row {
+      min-height: 49px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 12px;
+      color: #424142;
+      font-size: 14px;
+      position: relative;
+    }
+
+    .recipient-input {
+      flex: 1;
+      border: 0;
+      outline: none;
+      font: inherit;
+      min-width: 180px;
+      padding: 10px 0;
+    }
+
+    .recipient-input::placeholder { color: #616061; }
+
+    .member-suggestions {
+      display: none;
+      position: absolute;
+      top: 46px;
+      left: 58px;
+      width: min(420px, calc(100vw - 360px));
+      background: #fff;
+      border: 1px solid #d8d8d8;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0,0,0,.16);
+      padding: 8px 0;
+      z-index: 4;
+    }
+
+    .member-suggestions.visible { display: block; }
+
+    .suggestion-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 46px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    .suggestion-item:hover { background: #f6f6f6; }
+    .suggestion-avatar { width: 30px; height: 30px; border-radius: 4px; display: grid; place-items: center; background: #e8f5ff; }
+    .suggestion-name { font-weight: 700; }
+    .suggestion-email { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+    .app-shell.composer-mode-shell { grid-template-columns: 60px 205px minmax(410px, 1fr); }
+    .app-shell.composer-mode-shell .thread { display: none; }
+
+    .new-message-body { flex: 1; background: #f8f8f8; }
+
+    .composer-shell {
+      margin: 0 12px 0;
+      border: 1px solid #dddddd;
+      border-radius: 6px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .composer-spacer { flex: 1; min-height: 0; }
+    .composer-toolbar { height: 34px; display: flex; align-items: center; gap: 13px; padding: 0 12px; color: #c7c7c7; border-bottom: 1px solid #eeeeee; background: #fbfbfb; }
+    .composer-placeholder { height: 43px; padding: 11px 12px; color: #555; font-size: 14px; }
+    .composer-actions { height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; color: #555; }
+    .composer-action-left { display: flex; gap: 12px; align-items: center; }
+    .composer-send { color: #b9b9b9; font-size: 18px; }
+
     @media (max-width: 900px) {
       .app-shell { grid-template-columns: 56px 205px 1fr; }
       .thread { display: none; }
@@ -284,7 +406,7 @@
         <div class="nav-item dim"><span class="lock">▮</span><span class="name">s001-ツールセットアップ</span></div>
         <div class="nav-item dim" style="margin-top:16px"><span class="plus">＋</span><span>チャンネルを追加する</span></div>
 
-        <div class="section-title"><span>ダイレクトメッセージ</span><span>⊕</span></div>
+        <div class="section-title"><span>ダイレクトメッセージ</span><button class="new-dm-button" type="button" aria-label="新規メッセージを作成">⊕</button></div>
         <div class="nav-item"><span style="color:#2bac76">♥</span><span>Slackbot</span></div>
         <div class="nav-item"><span class="presence"></span><span>根本 理沙（自分）</span></div>
         <div class="nav-item active"><span class="presence away"></span><span>戸田 征 🏡</span></div>
@@ -297,6 +419,7 @@
     </aside>
 
     <main class="main">
+      <div class="dm-view">
       <header class="topbar">
         <div>
           <div class="dm-title">戸田 征 🏡</div>
@@ -337,6 +460,28 @@
           </div>
         </article>
       </section>
+      </div>
+
+      <section class="new-message-view" aria-label="新規メッセージ">
+        <header class="new-message-header">
+          <div class="new-message-title-row">
+            <div class="new-message-title">新規メッセージ</div>
+            <div class="new-message-more" aria-hidden="true">⋮</div>
+          </div>
+          <label class="recipient-row">
+            <span>送信先:</span>
+            <input class="recipient-input" type="text" autocomplete="off" placeholder="#aチャンネル、@somebody、または somebody@example.com" />
+            <div class="member-suggestions" aria-label="ユーザー候補"></div>
+          </label>
+        </header>
+        <div class="new-message-body"></div>
+        <div class="composer-spacer"></div>
+        <div class="composer-shell" aria-label="メッセージ入力欄">
+          <div class="composer-toolbar"><strong>B</strong><em>I</em><u>U</u><s>S</s><span>🔗</span><span>1≡</span><span>•≡</span><span>|≡</span><span>&lt;/&gt;</span><span>▣</span></div>
+          <div class="composer-placeholder">新しいメッセージを開始する</div>
+          <div class="composer-actions"><div class="composer-action-left"><span>＋</span><span>Aa</span><span>☺</span><span>@</span><span>▯</span><span>🎙</span><span>□</span></div><div class="composer-send">▶⌄</div></div>
+        </div>
+      </section>
     </main>
 
     <aside class="thread" aria-label="スレッド">
@@ -358,5 +503,61 @@
       </div>
     </aside>
   </div>
+
+  <script>
+    const organizationUsers = [
+      { name: "大野 智", email: "satoshi.ohno@example.com", icon: "🎣" },
+      { name: "櫻井 翔", email: "sho.sakurai@example.com", icon: "🎤" },
+      { name: "相葉 雅紀", email: "masaki.aiba@example.com", icon: "🌿" },
+      { name: "二宮 和也", email: "kazunari.ninomiya@example.com", icon: "🎮" },
+      { name: "松本 潤", email: "jun.matsumoto@example.com", icon: "✨" },
+    ];
+
+    const appShell = document.querySelector(".app-shell");
+    const main = document.querySelector(".main");
+    const newMessageView = document.querySelector(".new-message-view");
+    const newDmButton = document.querySelector(".new-dm-button");
+    const recipientInput = document.querySelector(".recipient-input");
+    const suggestions = document.querySelector(".member-suggestions");
+
+    function shuffleUsers(users) {
+      return [...users].sort(() => Math.random() - 0.5).slice(0, 5);
+    }
+
+    function renderSuggestions() {
+      suggestions.innerHTML = shuffleUsers(organizationUsers).map((user) => `
+        <div class="suggestion-item" role="button" tabindex="0" data-name="${user.name}">
+          <div class="suggestion-avatar">${user.icon}</div>
+          <div>
+            <div class="suggestion-name">${user.name}</div>
+            <div class="suggestion-email">${user.email}</div>
+          </div>
+        </div>
+      `).join("");
+      suggestions.classList.add("visible");
+    }
+
+    newDmButton.addEventListener("click", () => {
+      appShell.classList.add("composer-mode-shell");
+      main.classList.add("composer-mode");
+      newMessageView.classList.add("active");
+    });
+
+    recipientInput.addEventListener("focus", renderSuggestions);
+    recipientInput.addEventListener("click", renderSuggestions);
+
+    suggestions.addEventListener("click", (event) => {
+      const item = event.target.closest(".suggestion-item");
+      if (!item) return;
+      recipientInput.value = item.dataset.name;
+      suggestions.classList.remove("visible");
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".recipient-row")) {
+        suggestions.classList.remove("visible");
+      }
+    });
+  </script>
 </body>
 </html>
