@@ -240,9 +240,41 @@
     .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: #222; font-size: 13px; font-weight: 700; }
     .divider::before, .divider::after { content: ""; height: 1px; background: var(--border); flex: 1; }
 
-    .message { display: flex; gap: 10px; margin: 18px 0; }
+    .message { display: flex; gap: 10px; margin: 18px 0; position: relative; padding-right: 178px; }
     .message-content { line-height: 1.4; }
     .time { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 4px; }
+    .reaction-toolbar {
+      position: absolute;
+      top: -10px;
+      right: 8px;
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 6px;
+      border: 1px solid #dddddd;
+      border-radius: 6px;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    }
+    .message:hover .reaction-toolbar { display: flex; }
+    .reaction-button {
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      padding: 4px;
+    }
+    .reaction-button:hover { background: #f1f1f1; }
+    .reaction-list { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+    .reaction-pill {
+      border: 1px solid #d8d8d8;
+      border-radius: 999px;
+      background: #f8f8f8;
+      padding: 1px 7px;
+      font-size: 13px;
+    }
     .reply { margin-top: 6px; color: #1264a3; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; }
     .reply .mini-face { width: 24px; height: 24px; border-radius: 4px; background: #64c8ee; display: grid; place-items: center; }
 
@@ -459,10 +491,8 @@
 
         <div class="section-title"><span>ダイレクトメッセージ</span><button class="new-dm-button" type="button" aria-label="新規メッセージを作成">⊕</button></div>
         <div class="dm-list">
-          <div class="nav-item" data-email="slackbot@example.com"><span style="color:#2bac76">♥</span><span>Slackbot</span></div>
+          <div class="nav-item active" data-email="slackbot@example.com"><span style="color:#2bac76">♥</span><span>Slackbot</span></div>
           <div class="nav-item" data-email="risa.nemoto@example.com"><span class="presence"></span><span>根本 理沙（自分）</span></div>
-          <div class="nav-item active" data-email="toda@example.com"><span class="presence away"></span><span>戸田 征 🏡</span></div>
-          <div class="nav-item" data-email="shigeru.watanabe@example.com"><span class="presence away"></span><span>渡邊 茂</span></div>
         </div>
         <div class="nav-item dim" style="margin-top:18px"><span class="plus">＋</span><span>メンバーを招待</span></div>
 
@@ -475,7 +505,7 @@
       <div class="dm-view">
       <header class="topbar">
         <div>
-          <div class="dm-title">戸田 征 🏡</div>
+          <div class="dm-title">Slackbot</div>
           <div class="dm-subtitle">☆ 0 離席中</div>
         </div>
         <div class="top-actions"><span>📞</span><span>ⓘ</span><span>⚙</span><div class="search-box">⌕ <span>検索</span></div><span>@</span><span>☆</span><span>⋮</span></div>
@@ -484,33 +514,33 @@
 
       <section class="message-pane">
         <div class="profile-card">
-          <div class="avatar">👨🏻‍💼</div>
+          <div class="avatar">🤖</div>
           <div>
-            <div class="person-name">戸田 征 ○</div>
-            <div>🏡 Working remotely</div>
-            <div>株式会社Lipple</div>
+            <div class="person-name">Slackbot</div>
+            <div>あなたのワークスペースをサポートします</div>
+            <div>Slack</div>
           </div>
         </div>
-        <p class="intro"><span class="tag">@戸田 征</span> さんとの記念すべき第一回目のダイレクトメッセージ (DM) です。</p>
+        <p class="intro"><span class="tag">@Slackbot</span> とのダイレクトメッセージ (DM) です。</p>
 
         <div class="divider">8月25日(日)</div>
         <article class="message">
-          <div class="avatar small">👨🏻‍💼</div>
+          <div class="avatar small">🤖</div>
           <div class="message-content">
-            <div><span class="person-name">戸田 征 🏡</span><span class="time">17:29</span></div>
+            <div><span class="person-name">Slackbot</span><span class="time">17:29</span></div>
             <div><span class="tag">@根本 理沙</span></div>
-            <div>画像をお送りいたします。</div>
-            <div class="reply"><span class="mini-face">👨🏻‍💼</span>1件の返信 <span style="color:#777;font-weight:400">4日前</span></div>
+            <div>必要なときはいつでもお手伝いします。</div>
+            <div class="reply"><span class="mini-face">🤖</span>1件の返信 <span style="color:#777;font-weight:400">4日前</span></div>
           </div>
         </article>
 
         <div class="divider">今日</div>
         <article class="message">
-          <div class="avatar small">👨🏻‍💼</div>
+          <div class="avatar small">🤖</div>
           <div class="message-content">
-            <div><span class="person-name">戸田 征 🏡</span><span class="time">15:41</span></div>
+            <div><span class="person-name">Slackbot</span><span class="time">15:41</span></div>
             <div><span class="tag">@根本 理沙</span></div>
-            <div>よろしくお願い申し上げます。</div>
+            <div>通知や使い方について質問できます。</div>
           </div>
         </article>
       </section>
@@ -545,16 +575,16 @@
 
     <aside class="thread" aria-label="スレッド">
       <div class="thread-header">
-        <div><div class="thread-title">スレッド</div><div class="thread-sub">戸田 征</div></div>
+        <div><div class="thread-title">スレッド</div><div class="thread-sub">Slackbot</div></div>
         <div class="close">×</div>
       </div>
       <div class="thread-body">
         <article class="thread-message">
-          <div class="avatar small">👨🏻‍💼</div>
+          <div class="avatar small">🤖</div>
           <div>
-            <div><span class="person-name">戸田 征 🏡</span><span class="time">今日 15:41</span></div>
+            <div><span class="person-name">Slackbot</span><span class="time">今日 15:41</span></div>
             <div><span class="tag">@根本 理沙</span></div>
-            <div class="thread-text">よろしくお願い申し上げます。</div>
+            <div class="thread-text">通知や使い方について質問できます。</div>
           </div>
         </article>
         <div class="reply-box"><span>🔗　返信する...</span><span>☺</span></div>
@@ -574,10 +604,11 @@
     const defaultDmUsers = [
       { name: "Slackbot", email: "slackbot@example.com", icon: "🤖" },
       { name: "根本 理沙（自分）", email: "risa.nemoto@example.com", icon: "👩🏻‍💼" },
-      { name: "戸田 征 🏡", email: "toda@example.com", icon: "👨🏻‍💼" },
-      { name: "渡邊 茂", email: "shigeru.watanabe@example.com", icon: "👤" },
     ];
-    const allKnownUsers = [...defaultDmUsers, ...organizationUsers];
+    const removedUserEmails = new Set(["toda@example.com", "shigeru.watanabe@example.com"]);
+    const allKnownUsers = [...defaultDmUsers, ...organizationUsers].filter((user) => !removedUserEmails.has(user.email));
+    const reactionOptions = ["✅", "👀", "🙌", "😊"];
+    const autoReactionEmoji = "🙌";
     const dmMessagesStorageKey = "mock-slack-direct-messages";
     const dmRoomsStorageKey = "mock-slack-direct-message-rooms";
 
@@ -598,14 +629,16 @@
     const dmComposerSend = document.querySelector(".dm-composer-send");
 
     let selectedUser = null;
-    let activeDmUser = { name: "戸田 征 🏡", icon: "👨🏻‍💼", email: "toda@example.com" };
-    const savedRooms = loadFromStorage(dmRoomsStorageKey, []);
+    let activeDmUser = { name: "Slackbot", icon: "🤖", email: "slackbot@example.com" };
+    const savedRooms = loadFromStorage(dmRoomsStorageKey, []).filter((user) => !removedUserEmails.has(user.email));
     const roomUsers = new Map([...allKnownUsers, ...savedRooms].map((user) => [user.email, user]));
     const directMessages = new Map(
-      Object.entries(loadFromStorage(dmMessagesStorageKey, {})).map(([email, messages]) => [
-        email,
-        messages.map((message) => ({ ...message, sentAt: new Date(message.sentAt) })),
-      ])
+      Object.entries(loadFromStorage(dmMessagesStorageKey, {}))
+        .filter(([email]) => !removedUserEmails.has(email))
+        .map(([email, messages]) => [
+          email,
+          messages.map(normalizeMessage),
+        ])
     );
 
     function loadFromStorage(key, fallback) {
@@ -632,6 +665,20 @@
       localStorage.setItem(dmRoomsStorageKey, JSON.stringify(customRooms));
     }
 
+    function normalizeMessage(message) {
+      return {
+        id: message.id || `message-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        sender: message.sender || "根本 理沙",
+        text: message.text || "",
+        sentAt: new Date(message.sentAt || Date.now()),
+        reactions: Array.isArray(message.reactions)
+          ? message.reactions.map((reaction) => (
+            typeof reaction === "string" ? { emoji: reaction, count: 1 } : { emoji: reaction.emoji, count: reaction.count || 1 }
+          )).filter((reaction) => reaction.emoji)
+          : [],
+      };
+    }
+
     function shuffleUsers(users) {
       return [...users].sort(() => Math.random() - 0.5).slice(0, 5);
     }
@@ -645,7 +692,7 @@
 
     function renderSuggestions() {
       suggestions.replaceChildren();
-      shuffleUsers(organizationUsers).forEach((user) => {
+      shuffleUsers(organizationUsers.filter((user) => !removedUserEmails.has(user.email))).forEach((user) => {
         const item = createElement("div", "suggestion-item");
         item.setAttribute("role", "button");
         item.tabIndex = 0;
@@ -681,6 +728,7 @@
     }
 
     function buildDirectMessageRoom(user) {
+      if (removedUserEmails.has(user.email)) return;
       roomUsers.set(user.email, user);
       if (!directMessages.has(user.email)) directMessages.set(user.email, []);
       if (!dmList.querySelector(`[data-email="${CSS.escape(user.email)}"]`)) {
@@ -694,6 +742,7 @@
     }
 
     function setActiveDm(user) {
+      if (removedUserEmails.has(user.email)) return;
       roomUsers.set(user.email, user);
       if (!directMessages.has(user.email)) directMessages.set(user.email, []);
       activeDmUser = user;
@@ -712,14 +761,14 @@
       profile.append(createElement("div", "avatar", user.icon || "👤"));
       const details = createElement("div");
       details.append(createElement("div", "person-name", user.name));
-      details.append(createElement("div", null, user.email || "株式会社Lipple"));
+      details.append(createElement("div", null, user.email || "Slack"));
       profile.append(details);
       const intro = createElement("p", "intro");
       intro.append(createElement("span", "tag", `@${user.name}`));
       intro.append(document.createTextNode(" さんとのダイレクトメッセージ (DM) です。"));
       messagePane.append(profile, intro);
       (directMessages.get(user.email) || []).forEach((message) => {
-        messagePane.append(createMessageElement(message.text, message.sentAt));
+        messagePane.append(createMessageElement(message));
       });
       messagePane.scrollTop = messagePane.scrollHeight;
     }
@@ -733,20 +782,41 @@
       return true;
     }
 
-    function createMessageElement(text, sentAt = new Date()) {
+    function createMessageElement(messageData) {
       const message = createElement("article", "message");
-      const avatar = createElement("div", "avatar small", "👩🏻‍💼");
+      message.dataset.messageId = messageData.id;
+      const avatar = createElement("div", "avatar small", messageData.sender === "根本 理沙" ? "👩🏻‍💼" : activeDmUser.icon || "👤");
       const content = createElement("div", "message-content");
       const header = createElement("div");
-      header.append(createElement("span", "person-name", "根本 理沙"));
-      header.append(createElement("span", "time", sentAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })));
-      content.append(header, createElement("div", null, text));
-      message.append(avatar, content);
+      header.append(createElement("span", "person-name", messageData.sender));
+      header.append(createElement("span", "time", messageData.sentAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })));
+      content.append(header, createElement("div", null, messageData.text));
+
+      const reactionList = createElement("div", "reaction-list");
+      renderReactionList(reactionList, messageData.reactions);
+      content.append(reactionList);
+
+      const toolbar = createElement("div", "reaction-toolbar");
+      reactionOptions.forEach((emoji) => {
+        const button = createElement("button", "reaction-button", emoji);
+        button.type = "button";
+        button.dataset.emoji = emoji;
+        button.setAttribute("aria-label", `${emoji} でリアクションする`);
+        toolbar.append(button);
+      });
+      message.append(avatar, content, toolbar);
       return message;
     }
 
-    function renderSentMessage(text, sentAt) {
-      messagePane.append(createMessageElement(text, sentAt));
+    function renderReactionList(container, reactions) {
+      container.replaceChildren();
+      reactions.forEach((reaction) => {
+        container.append(createElement("span", "reaction-pill", `${reaction.emoji} ${reaction.count}`));
+      });
+    }
+
+    function renderSentMessage(messageData) {
+      messagePane.append(createMessageElement(messageData));
       messagePane.scrollTop = messagePane.scrollHeight;
     }
 
@@ -759,12 +829,38 @@
       const text = input.value.trim();
       if (!text) return;
       if (input === newComposerInput && !ensureDirectMessageRoom()) return;
-      const sentAt = new Date();
-      directMessages.get(activeDmUser.email).push({ sender: "根本 理沙", text, sentAt });
+      const messageData = normalizeMessage({
+        id: `message-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        sender: "根本 理沙",
+        text,
+        sentAt: new Date(),
+        reactions: [],
+      });
+      if (!directMessages.has(activeDmUser.email)) directMessages.set(activeDmUser.email, []);
+      directMessages.get(activeDmUser.email).push(messageData);
       saveMessages();
-      renderSentMessage(text, sentAt);
+      renderSentMessage(messageData);
       input.value = "";
       updateSendState();
+      scheduleAutoReaction(activeDmUser.email, messageData.id);
+    }
+
+    function addReaction(roomEmail, messageId, emoji) {
+      const messages = directMessages.get(roomEmail) || [];
+      const message = messages.find((item) => item.id === messageId);
+      if (!message) return;
+      const reaction = message.reactions.find((item) => item.emoji === emoji);
+      if (reaction) {
+        reaction.count += 1;
+      } else {
+        message.reactions.push({ emoji, count: 1 });
+      }
+      saveMessages();
+      if (activeDmUser.email === roomEmail) renderDmRoom(activeDmUser);
+    }
+
+    function scheduleAutoReaction(roomEmail, messageId) {
+      window.setTimeout(() => addReaction(roomEmail, messageId, autoReactionEmoji), 3000);
     }
 
     function hydratePersistedRooms() {
@@ -819,6 +915,14 @@
     });
     dmComposerSend.addEventListener("click", () => sendMessage(dmComposerInput));
 
+    messagePane.addEventListener("click", (event) => {
+      const button = event.target.closest(".reaction-button");
+      if (!button) return;
+      const message = button.closest(".message");
+      if (!message?.dataset.messageId) return;
+      addReaction(activeDmUser.email, message.dataset.messageId, button.dataset.emoji);
+    });
+
     document.addEventListener("click", (event) => {
       if (!event.target.closest(".recipient-row")) {
         suggestions.classList.remove("visible");
@@ -826,7 +930,7 @@
     });
 
     hydratePersistedRooms();
-    if (directMessages.has(activeDmUser.email)) renderDmRoom(activeDmUser);
+    renderDmRoom(activeDmUser);
   </script>
 </body>
 </html>
