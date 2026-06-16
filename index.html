@@ -187,6 +187,7 @@
       display: flex;
       flex-direction: column;
       min-width: 0;
+      min-height: 0;
       border-right: 1px solid var(--border);
       background: #fff;
     }
@@ -218,7 +219,7 @@
       font-size: 14px;
     }
 
-    .message-pane { flex: 1; overflow-y: auto; padding: 0 18px 28px; }
+    .message-pane { flex: 1; min-height: 0; overflow-y: auto; padding: 0 18px 28px; }
     .dm-menu-row {
       height: 42px;
       border-bottom: 1px solid #eeeeee;
@@ -328,6 +329,7 @@
       display: flex;
       flex-direction: column;
       min-height: 0;
+      overflow: hidden;
     }
 
     .new-message-view.active { display: flex; }
@@ -474,7 +476,7 @@
     <aside class="sidebar" aria-label="サイドバー">
       <div class="team-header">
         <div class="team-row"><span>株式会社ソーシ...</span><span>♧ 🔔</span></div>
-        <div class="status-row"><span class="online-dot"></span><span>根本 理沙</span></div>
+        <div class="status-row"><span class="online-dot"></span><span class="current-user-name">根本 理沙</span></div>
         <div class="jump"><span>☰ 会話を移動</span><span>‹ ›</span></div>
       </div>
       <nav class="nav-scroll">
@@ -492,7 +494,7 @@
         <div class="section-title"><span>ダイレクトメッセージ</span><button class="new-dm-button" type="button" aria-label="新規メッセージを作成">⊕</button></div>
         <div class="dm-list">
           <div class="nav-item active" data-email="slackbot@example.com"><span style="color:#2bac76">♥</span><span>Slackbot</span></div>
-          <div class="nav-item" data-email="risa.nemoto@example.com"><span class="presence"></span><span>根本 理沙（自分）</span></div>
+          <div class="nav-item" data-email="risa.nemoto@example.com"><span class="presence"></span><span class="current-user-dm-name">根本 理沙（自分）</span></div>
         </div>
         <div class="nav-item dim" style="margin-top:18px"><span class="plus">＋</span><span>メンバーを招待</span></div>
 
@@ -594,6 +596,11 @@
   </div>
 
   <script>
+    const playerNameStorageKey = "mock-slack-player-name";
+    const currentUserEmail = "risa.nemoto@example.com";
+    const currentUserIcon = "👩🏻‍💼";
+    const currentUserName = getOrAskPlayerName();
+
     const organizationUsers = [
       { name: "大野 智", email: "satoshi.ohno@example.com", icon: "🎣" },
       { name: "櫻井 翔", email: "sho.sakurai@example.com", icon: "🎤" },
@@ -603,7 +610,7 @@
     ];
     const defaultDmUsers = [
       { name: "Slackbot", email: "slackbot@example.com", icon: "🤖" },
-      { name: "根本 理沙（自分）", email: "risa.nemoto@example.com", icon: "👩🏻‍💼" },
+      { name: `${currentUserName}（自分）`, email: currentUserEmail, icon: currentUserIcon },
     ];
     const removedUserEmails = new Set(["toda@example.com", "shigeru.watanabe@example.com"]);
     const allKnownUsers = [...defaultDmUsers, ...organizationUsers].filter((user) => !removedUserEmails.has(user.email));
@@ -611,6 +618,15 @@
     const autoReactionEmoji = "🙌";
     const dmMessagesStorageKey = "mock-slack-direct-messages";
     const dmRoomsStorageKey = "mock-slack-direct-message-rooms";
+    const periodicDmStorageKey = "mock-slack-periodic-dm-index";
+    const periodicDmIntervalMs = 15000;
+    const periodicDmComments = [
+      "@{name} さん、今日の進捗を確認してもらえますか？",
+      "@{name} さん、次のタスクについて少し相談したいです。",
+      "@{name} さん、資料を見たらコメントください。",
+      "@{name} さん、あとで5分だけDMできますか？",
+      "@{name} さん、この件の優先度を教えてください。",
+    ];
 
     const appShell = document.querySelector(".app-shell");
     const main = document.querySelector(".main");
@@ -627,6 +643,11 @@
     const newComposerSend = document.querySelector(".new-composer-send");
     const dmComposerInput = document.querySelector(".dm-composer-input");
     const dmComposerSend = document.querySelector(".dm-composer-send");
+    const currentUserNameLabel = document.querySelector(".current-user-name");
+    const currentUserDmNameLabel = document.querySelector(".current-user-dm-name");
+
+    currentUserNameLabel.textContent = currentUserName;
+    currentUserDmNameLabel.textContent = `${currentUserName}（自分）`;
 
     let selectedUser = null;
     let activeDmUser = { name: "Slackbot", icon: "🤖", email: "slackbot@example.com" };
@@ -640,6 +661,19 @@
           messages.map(normalizeMessage),
         ])
     );
+
+    function getOrAskPlayerName() {
+      const savedName = localStorage.getItem(playerNameStorageKey)?.trim();
+      if (savedName) return savedName;
+      const enteredName = window.prompt("ゲームを開始します。あなたの名前を入力してください。", "");
+      const normalizedName = enteredName?.trim() || "あなた";
+      localStorage.setItem(playerNameStorageKey, normalizedName);
+      return normalizedName;
+    }
+
+    function getDisplaySenderName(sender) {
+      return sender === currentUserEmail ? currentUserName : sender;
+    }
 
     function loadFromStorage(key, fallback) {
       try {
@@ -668,7 +702,7 @@
     function normalizeMessage(message) {
       return {
         id: message.id || `message-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        sender: message.sender || "根本 理沙",
+        sender: message.sender === "根本 理沙" ? currentUserEmail : message.sender || currentUserEmail,
         text: message.text || "",
         sentAt: new Date(message.sentAt || Date.now()),
         reactions: Array.isArray(message.reactions)
@@ -785,10 +819,11 @@
     function createMessageElement(messageData) {
       const message = createElement("article", "message");
       message.dataset.messageId = messageData.id;
-      const avatar = createElement("div", "avatar small", messageData.sender === "根本 理沙" ? "👩🏻‍💼" : activeDmUser.icon || "👤");
+      const isCurrentUserMessage = messageData.sender === currentUserEmail;
+      const avatar = createElement("div", "avatar small", isCurrentUserMessage ? currentUserIcon : activeDmUser.icon || "👤");
       const content = createElement("div", "message-content");
       const header = createElement("div");
-      header.append(createElement("span", "person-name", messageData.sender));
+      header.append(createElement("span", "person-name", getDisplaySenderName(messageData.sender)));
       header.append(createElement("span", "time", messageData.sentAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })));
       content.append(header, createElement("div", null, messageData.text));
 
@@ -831,7 +866,7 @@
       if (input === newComposerInput && !ensureDirectMessageRoom()) return;
       const messageData = normalizeMessage({
         id: `message-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        sender: "根本 理沙",
+        sender: currentUserEmail,
         text,
         sentAt: new Date(),
         reactions: [],
@@ -865,6 +900,35 @@
 
     function hydratePersistedRooms() {
       savedRooms.forEach((user) => buildDirectMessageRoom(user));
+    }
+
+    function addIncomingDm(user, text) {
+      buildDirectMessageRoom(user);
+      const messageData = normalizeMessage({
+        id: `message-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        sender: user.name,
+        text,
+        sentAt: new Date(),
+        reactions: [],
+      });
+      directMessages.get(user.email).push(messageData);
+      saveMessages();
+      if (activeDmUser.email === user.email) renderSentMessage(messageData);
+    }
+
+    function sendPeriodicMentionDm() {
+      const mentionUsers = organizationUsers.filter((user) => !removedUserEmails.has(user.email));
+      if (!mentionUsers.length) return;
+      const currentIndex = Number(localStorage.getItem(periodicDmStorageKey) || 0);
+      const user = mentionUsers[currentIndex % mentionUsers.length];
+      const template = periodicDmComments[currentIndex % periodicDmComments.length];
+      localStorage.setItem(periodicDmStorageKey, String(currentIndex + 1));
+      addIncomingDm(user, template.replace("{name}", currentUserName));
+    }
+
+    function startPeriodicMentionDms() {
+      window.setTimeout(sendPeriodicMentionDm, 5000);
+      window.setInterval(sendPeriodicMentionDm, periodicDmIntervalMs);
     }
 
     newDmButton.addEventListener("click", () => {
@@ -931,6 +995,7 @@
 
     hydratePersistedRooms();
     renderDmRoom(activeDmUser);
+    startPeriodicMentionDms();
   </script>
 </body>
 </html>
