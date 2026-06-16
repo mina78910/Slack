@@ -173,6 +173,8 @@
       text-overflow: ellipsis;
     }
 
+    .dm-list .nav-item { cursor: pointer; }
+
     .nav-item .name { overflow: hidden; text-overflow: ellipsis; }
     .nav-item.active { background: var(--active-blue); color: white; }
     .nav-item.dim { color: #cbb8cb; }
@@ -217,6 +219,17 @@
     }
 
     .message-pane { flex: 1; overflow-y: auto; padding: 0 18px 28px; }
+    .dm-menu-row {
+      height: 42px;
+      border-bottom: 1px solid #eeeeee;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      padding: 0 18px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .dm-menu-row span:first-child { color: #111; }
     .profile-card { margin-top: 175px; display: flex; gap: 12px; align-items: flex-start; }
     .avatar { width: 52px; height: 52px; border-radius: 4px; background: linear-gradient(#69c8ee, #49a9e8); display: grid; place-items: center; font-size: 34px; flex: 0 0 auto; }
     .avatar.small { width: 36px; height: 36px; font-size: 24px; }
@@ -227,9 +240,41 @@
     .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: #222; font-size: 13px; font-weight: 700; }
     .divider::before, .divider::after { content: ""; height: 1px; background: var(--border); flex: 1; }
 
-    .message { display: flex; gap: 10px; margin: 18px 0; }
+    .message { display: flex; gap: 10px; margin: 18px 0; position: relative; padding-right: 178px; }
     .message-content { line-height: 1.4; }
     .time { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 4px; }
+    .reaction-toolbar {
+      position: absolute;
+      top: -10px;
+      right: 8px;
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 6px;
+      border: 1px solid #dddddd;
+      border-radius: 6px;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,.12);
+    }
+    .message:hover .reaction-toolbar { display: flex; }
+    .reaction-button {
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      padding: 4px;
+    }
+    .reaction-button:hover { background: #f1f1f1; }
+    .reaction-list { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+    .reaction-pill {
+      border: 1px solid #d8d8d8;
+      border-radius: 999px;
+      background: #f8f8f8;
+      padding: 1px 7px;
+      font-size: 13px;
+    }
     .reply { margin-top: 6px; color: #1264a3; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; }
     .reply .mini-face { width: 24px; height: 24px; border-radius: 4px; background: #64c8ee; display: grid; place-items: center; }
 
@@ -278,8 +323,16 @@
       background: #fff;
     }
 
+    .dm-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
     .new-message-view.active { display: flex; }
     .main.composer-mode .dm-view { display: none; }
+    .main:not(.composer-mode) .new-message-view { display: none; }
 
     .new-message-header {
       min-height: 120px;
@@ -351,10 +404,13 @@
     .suggestion-name { font-weight: 700; }
     .suggestion-email { color: var(--muted); font-size: 12px; margin-top: 2px; }
 
-    .app-shell.composer-mode-shell { grid-template-columns: 60px 205px minmax(410px, 1fr); }
-    .app-shell.composer-mode-shell .thread { display: none; }
+    .app-shell.composer-mode-shell,
+    .app-shell.dm-room-shell { grid-template-columns: 60px 205px minmax(410px, 1fr); }
+    .app-shell.composer-mode-shell .thread,
+    .app-shell.dm-room-shell .thread { display: none; }
 
-    .new-message-body { flex: 1; background: #f8f8f8; }
+    .new-message-body { flex: 1; background: #f8f8f8; overflow-y: auto; padding: 18px; }
+    .new-message-body .message { margin: 0 0 16px; }
 
     .composer-shell {
       margin: 0 12px 0;
@@ -366,10 +422,37 @@
 
     .composer-spacer { flex: 1; min-height: 0; }
     .composer-toolbar { height: 34px; display: flex; align-items: center; gap: 13px; padding: 0 12px; color: #c7c7c7; border-bottom: 1px solid #eeeeee; background: #fbfbfb; }
-    .composer-placeholder { height: 43px; padding: 11px 12px; color: #555; font-size: 14px; }
+    .composer-input {
+      width: 100%;
+      min-height: 43px;
+      padding: 11px 12px;
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      border: 0;
+      outline: none;
+      resize: none;
+      display: block;
+    }
+
+    .composer-input::placeholder { color: #555; }
     .composer-actions { height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; color: #555; }
     .composer-action-left { display: flex; gap: 12px; align-items: center; }
-    .composer-send { color: #b9b9b9; font-size: 18px; }
+    .composer-send {
+      border: 0;
+      background: transparent;
+      color: #b9b9b9;
+      font-size: 18px;
+      cursor: default;
+      padding: 0;
+    }
+
+    .composer-send.ready {
+      color: #007a5a;
+      cursor: pointer;
+    }
+
+    .dm-view > .composer-shell { margin-bottom: 12px; }
 
     @media (max-width: 900px) {
       .app-shell { grid-template-columns: 56px 205px 1fr; }
@@ -407,10 +490,10 @@
         <div class="nav-item dim" style="margin-top:16px"><span class="plus">＋</span><span>チャンネルを追加する</span></div>
 
         <div class="section-title"><span>ダイレクトメッセージ</span><button class="new-dm-button" type="button" aria-label="新規メッセージを作成">⊕</button></div>
-        <div class="nav-item"><span style="color:#2bac76">♥</span><span>Slackbot</span></div>
-        <div class="nav-item"><span class="presence"></span><span>根本 理沙（自分）</span></div>
-        <div class="nav-item active"><span class="presence away"></span><span>戸田 征 🏡</span></div>
-        <div class="nav-item"><span class="presence away"></span><span>渡邊 茂</span></div>
+        <div class="dm-list">
+          <div class="nav-item active" data-email="slackbot@example.com"><span style="color:#2bac76">♥</span><span>Slackbot</span></div>
+          <div class="nav-item" data-email="risa.nemoto@example.com"><span class="presence"></span><span>根本 理沙（自分）</span></div>
+        </div>
         <div class="nav-item dim" style="margin-top:18px"><span class="plus">＋</span><span>メンバーを招待</span></div>
 
         <div class="section-title"><span>App</span><span>⊕</span></div>
@@ -422,44 +505,50 @@
       <div class="dm-view">
       <header class="topbar">
         <div>
-          <div class="dm-title">戸田 征 🏡</div>
+          <div class="dm-title">Slackbot</div>
           <div class="dm-subtitle">☆ 0 離席中</div>
         </div>
         <div class="top-actions"><span>📞</span><span>ⓘ</span><span>⚙</span><div class="search-box">⌕ <span>検索</span></div><span>@</span><span>☆</span><span>⋮</span></div>
       </header>
+      <div class="dm-menu-row"><span>● メッセージ</span><span>♧ canvas を追加する</span><span>▱ ファイル</span><span>＋</span></div>
 
       <section class="message-pane">
         <div class="profile-card">
-          <div class="avatar">👨🏻‍💼</div>
+          <div class="avatar">🤖</div>
           <div>
-            <div class="person-name">戸田 征 ○</div>
-            <div>🏡 Working remotely</div>
-            <div>株式会社Lipple</div>
+            <div class="person-name">Slackbot</div>
+            <div>あなたのワークスペースをサポートします</div>
+            <div>Slack</div>
           </div>
         </div>
-        <p class="intro"><span class="tag">@戸田 征</span> さんとの記念すべき第一回目のダイレクトメッセージ (DM) です。</p>
+        <p class="intro"><span class="tag">@Slackbot</span> とのダイレクトメッセージ (DM) です。</p>
 
         <div class="divider">8月25日(日)</div>
         <article class="message">
-          <div class="avatar small">👨🏻‍💼</div>
+          <div class="avatar small">🤖</div>
           <div class="message-content">
-            <div><span class="person-name">戸田 征 🏡</span><span class="time">17:29</span></div>
+            <div><span class="person-name">Slackbot</span><span class="time">17:29</span></div>
             <div><span class="tag">@根本 理沙</span></div>
-            <div>画像をお送りいたします。</div>
-            <div class="reply"><span class="mini-face">👨🏻‍💼</span>1件の返信 <span style="color:#777;font-weight:400">4日前</span></div>
+            <div>必要なときはいつでもお手伝いします。</div>
+            <div class="reply"><span class="mini-face">🤖</span>1件の返信 <span style="color:#777;font-weight:400">4日前</span></div>
           </div>
         </article>
 
         <div class="divider">今日</div>
         <article class="message">
-          <div class="avatar small">👨🏻‍💼</div>
+          <div class="avatar small">🤖</div>
           <div class="message-content">
-            <div><span class="person-name">戸田 征 🏡</span><span class="time">15:41</span></div>
+            <div><span class="person-name">Slackbot</span><span class="time">15:41</span></div>
             <div><span class="tag">@根本 理沙</span></div>
-            <div>よろしくお願い申し上げます。</div>
+            <div>通知や使い方について質問できます。</div>
           </div>
         </article>
       </section>
+        <div class="composer-shell dm-composer" aria-label="ダイレクトメッセージ入力欄">
+          <div class="composer-toolbar"><strong>B</strong><em>I</em><u>U</u><s>S</s><span>🔗</span><span>1≡</span><span>•≡</span><span>|≡</span><span>&lt;/&gt;</span><span>▣</span></div>
+          <textarea class="composer-input dm-composer-input" rows="1" placeholder="メッセージを入力する"></textarea>
+          <div class="composer-actions"><div class="composer-action-left"><span>＋</span><span>Aa</span><span>☺</span><span>@</span><span>▯</span><span>🎙</span><span>□</span></div><button class="composer-send dm-composer-send" type="button" aria-label="ダイレクトメッセージを送信">▶⌄</button></div>
+        </div>
       </div>
 
       <section class="new-message-view" aria-label="新規メッセージ">
@@ -478,24 +567,24 @@
         <div class="composer-spacer"></div>
         <div class="composer-shell" aria-label="メッセージ入力欄">
           <div class="composer-toolbar"><strong>B</strong><em>I</em><u>U</u><s>S</s><span>🔗</span><span>1≡</span><span>•≡</span><span>|≡</span><span>&lt;/&gt;</span><span>▣</span></div>
-          <div class="composer-placeholder">新しいメッセージを開始する</div>
-          <div class="composer-actions"><div class="composer-action-left"><span>＋</span><span>Aa</span><span>☺</span><span>@</span><span>▯</span><span>🎙</span><span>□</span></div><div class="composer-send">▶⌄</div></div>
+          <textarea class="composer-input new-composer-input" rows="1" placeholder="新しいメッセージを開始する"></textarea>
+          <div class="composer-actions"><div class="composer-action-left"><span>＋</span><span>Aa</span><span>☺</span><span>@</span><span>▯</span><span>🎙</span><span>□</span></div><button class="composer-send new-composer-send" type="button" aria-label="メッセージを送信">▶⌄</button></div>
         </div>
       </section>
     </main>
 
     <aside class="thread" aria-label="スレッド">
       <div class="thread-header">
-        <div><div class="thread-title">スレッド</div><div class="thread-sub">戸田 征</div></div>
+        <div><div class="thread-title">スレッド</div><div class="thread-sub">Slackbot</div></div>
         <div class="close">×</div>
       </div>
       <div class="thread-body">
         <article class="thread-message">
-          <div class="avatar small">👨🏻‍💼</div>
+          <div class="avatar small">🤖</div>
           <div>
-            <div><span class="person-name">戸田 征 🏡</span><span class="time">今日 15:41</span></div>
+            <div><span class="person-name">Slackbot</span><span class="time">今日 15:41</span></div>
             <div><span class="tag">@根本 理沙</span></div>
-            <div class="thread-text">よろしくお願い申し上げます。</div>
+            <div class="thread-text">通知や使い方について質問できます。</div>
           </div>
         </article>
         <div class="reply-box"><span>🔗　返信する...</span><span>☺</span></div>
@@ -512,6 +601,16 @@
       { name: "二宮 和也", email: "kazunari.ninomiya@example.com", icon: "🎮" },
       { name: "松本 潤", email: "jun.matsumoto@example.com", icon: "✨" },
     ];
+    const defaultDmUsers = [
+      { name: "Slackbot", email: "slackbot@example.com", icon: "🤖" },
+      { name: "根本 理沙（自分）", email: "risa.nemoto@example.com", icon: "👩🏻‍💼" },
+    ];
+    const removedUserEmails = new Set(["toda@example.com", "shigeru.watanabe@example.com"]);
+    const allKnownUsers = [...defaultDmUsers, ...organizationUsers].filter((user) => !removedUserEmails.has(user.email));
+    const reactionOptions = ["✅", "👀", "🙌", "😊"];
+    const autoReactionEmoji = "🙌";
+    const dmMessagesStorageKey = "mock-slack-direct-messages";
+    const dmRoomsStorageKey = "mock-slack-direct-message-rooms";
 
     const appShell = document.querySelector(".app-shell");
     const main = document.querySelector(".main");
@@ -519,28 +618,269 @@
     const newDmButton = document.querySelector(".new-dm-button");
     const recipientInput = document.querySelector(".recipient-input");
     const suggestions = document.querySelector(".member-suggestions");
+    const dmList = document.querySelector(".dm-list");
+    const messagePane = document.querySelector(".message-pane");
+    const newMessageBody = document.querySelector(".new-message-body");
+    const dmTitle = document.querySelector(".dm-title");
+    const dmSubtitle = document.querySelector(".dm-subtitle");
+    const newComposerInput = document.querySelector(".new-composer-input");
+    const newComposerSend = document.querySelector(".new-composer-send");
+    const dmComposerInput = document.querySelector(".dm-composer-input");
+    const dmComposerSend = document.querySelector(".dm-composer-send");
+
+    let selectedUser = null;
+    let activeDmUser = { name: "Slackbot", icon: "🤖", email: "slackbot@example.com" };
+    const savedRooms = loadFromStorage(dmRoomsStorageKey, []).filter((user) => !removedUserEmails.has(user.email));
+    const roomUsers = new Map([...allKnownUsers, ...savedRooms].map((user) => [user.email, user]));
+    const directMessages = new Map(
+      Object.entries(loadFromStorage(dmMessagesStorageKey, {}))
+        .filter(([email]) => !removedUserEmails.has(email))
+        .map(([email, messages]) => [
+          email,
+          messages.map(normalizeMessage),
+        ])
+    );
+
+    function loadFromStorage(key, fallback) {
+      try {
+        return JSON.parse(localStorage.getItem(key)) || fallback;
+      } catch (_error) {
+        return fallback;
+      }
+    }
+
+    function saveMessages() {
+      const serializableMessages = Object.fromEntries(
+        [...directMessages.entries()].map(([email, messages]) => [
+          email,
+          messages.map((message) => ({ ...message, sentAt: message.sentAt.toISOString() })),
+        ])
+      );
+      localStorage.setItem(dmMessagesStorageKey, JSON.stringify(serializableMessages));
+    }
+
+    function saveRooms() {
+      const defaultEmails = new Set(defaultDmUsers.map((user) => user.email));
+      const customRooms = [...roomUsers.values()].filter((user) => !defaultEmails.has(user.email));
+      localStorage.setItem(dmRoomsStorageKey, JSON.stringify(customRooms));
+    }
+
+    function normalizeMessage(message) {
+      return {
+        id: message.id || `message-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        sender: message.sender || "根本 理沙",
+        text: message.text || "",
+        sentAt: new Date(message.sentAt || Date.now()),
+        reactions: Array.isArray(message.reactions)
+          ? message.reactions.map((reaction) => (
+            typeof reaction === "string" ? { emoji: reaction, count: 1 } : { emoji: reaction.emoji, count: reaction.count || 1 }
+          )).filter((reaction) => reaction.emoji)
+          : [],
+      };
+    }
 
     function shuffleUsers(users) {
       return [...users].sort(() => Math.random() - 0.5).slice(0, 5);
     }
 
+    function createElement(tag, className, text) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text !== undefined) element.textContent = text;
+      return element;
+    }
+
     function renderSuggestions() {
-      suggestions.innerHTML = shuffleUsers(organizationUsers).map((user) => `
-        <div class="suggestion-item" role="button" tabindex="0" data-name="${user.name}">
-          <div class="suggestion-avatar">${user.icon}</div>
-          <div>
-            <div class="suggestion-name">${user.name}</div>
-            <div class="suggestion-email">${user.email}</div>
-          </div>
-        </div>
-      `).join("");
+      suggestions.replaceChildren();
+      shuffleUsers(organizationUsers.filter((user) => !removedUserEmails.has(user.email))).forEach((user) => {
+        const item = createElement("div", "suggestion-item");
+        item.setAttribute("role", "button");
+        item.tabIndex = 0;
+        item.dataset.email = user.email;
+
+        const avatar = createElement("div", "suggestion-avatar", user.icon);
+        const info = createElement("div");
+        info.append(createElement("div", "suggestion-name", user.name));
+        info.append(createElement("div", "suggestion-email", user.email));
+        item.append(avatar, info);
+        suggestions.append(item);
+      });
       suggestions.classList.add("visible");
     }
 
-    newDmButton.addEventListener("click", () => {
+    function activateComposerMode() {
+      selectedUser = null;
+      recipientInput.value = "";
+      newComposerInput.value = "";
+      newMessageBody.replaceChildren();
+      updateSendState();
+      appShell.classList.remove("dm-room-shell");
       appShell.classList.add("composer-mode-shell");
       main.classList.add("composer-mode");
       newMessageView.classList.add("active");
+    }
+
+    function activateDmMode() {
+      appShell.classList.remove("composer-mode-shell");
+      appShell.classList.add("dm-room-shell");
+      main.classList.remove("composer-mode");
+      newMessageView.classList.remove("active");
+    }
+
+    function buildDirectMessageRoom(user) {
+      if (removedUserEmails.has(user.email)) return;
+      roomUsers.set(user.email, user);
+      if (!directMessages.has(user.email)) directMessages.set(user.email, []);
+      if (!dmList.querySelector(`[data-email="${CSS.escape(user.email)}"]`)) {
+        const item = createElement("div", "nav-item");
+        item.dataset.email = user.email;
+        item.append(createElement("span", "presence away"), createElement("span", "name", user.name));
+        dmList.append(item);
+      }
+      saveRooms();
+      saveMessages();
+    }
+
+    function setActiveDm(user) {
+      if (removedUserEmails.has(user.email)) return;
+      roomUsers.set(user.email, user);
+      if (!directMessages.has(user.email)) directMessages.set(user.email, []);
+      activeDmUser = user;
+      document.querySelectorAll(".dm-list .nav-item").forEach((item) => {
+        item.classList.toggle("active", item.dataset.email === user.email);
+      });
+      dmTitle.textContent = user.name;
+      dmSubtitle.textContent = "☆ 0 離席中";
+      newMessageBody.dataset.room = user.email;
+      renderDmRoom(user);
+    }
+
+    function renderDmRoom(user) {
+      messagePane.replaceChildren();
+      const profile = createElement("div", "profile-card");
+      profile.append(createElement("div", "avatar", user.icon || "👤"));
+      const details = createElement("div");
+      details.append(createElement("div", "person-name", user.name));
+      details.append(createElement("div", null, user.email || "Slack"));
+      profile.append(details);
+      const intro = createElement("p", "intro");
+      intro.append(createElement("span", "tag", `@${user.name}`));
+      intro.append(document.createTextNode(" さんとのダイレクトメッセージ (DM) です。"));
+      messagePane.append(profile, intro);
+      (directMessages.get(user.email) || []).forEach((message) => {
+        messagePane.append(createMessageElement(message));
+      });
+      messagePane.scrollTop = messagePane.scrollHeight;
+    }
+
+    function ensureDirectMessageRoom() {
+      if (!selectedUser) return false;
+      buildDirectMessageRoom(selectedUser);
+      setActiveDm(selectedUser);
+      activateDmMode();
+      dmComposerInput.focus();
+      return true;
+    }
+
+    function createMessageElement(messageData) {
+      const message = createElement("article", "message");
+      message.dataset.messageId = messageData.id;
+      const avatar = createElement("div", "avatar small", messageData.sender === "根本 理沙" ? "👩🏻‍💼" : activeDmUser.icon || "👤");
+      const content = createElement("div", "message-content");
+      const header = createElement("div");
+      header.append(createElement("span", "person-name", messageData.sender));
+      header.append(createElement("span", "time", messageData.sentAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })));
+      content.append(header, createElement("div", null, messageData.text));
+
+      const reactionList = createElement("div", "reaction-list");
+      renderReactionList(reactionList, messageData.reactions);
+      content.append(reactionList);
+
+      const toolbar = createElement("div", "reaction-toolbar");
+      reactionOptions.forEach((emoji) => {
+        const button = createElement("button", "reaction-button", emoji);
+        button.type = "button";
+        button.dataset.emoji = emoji;
+        button.setAttribute("aria-label", `${emoji} でリアクションする`);
+        toolbar.append(button);
+      });
+      message.append(avatar, content, toolbar);
+      return message;
+    }
+
+    function renderReactionList(container, reactions) {
+      container.replaceChildren();
+      reactions.forEach((reaction) => {
+        container.append(createElement("span", "reaction-pill", `${reaction.emoji} ${reaction.count}`));
+      });
+    }
+
+    function renderSentMessage(messageData) {
+      messagePane.append(createMessageElement(messageData));
+      messagePane.scrollTop = messagePane.scrollHeight;
+    }
+
+    function updateSendState() {
+      newComposerSend.classList.toggle("ready", Boolean(selectedUser && newComposerInput.value.trim()));
+      dmComposerSend.classList.toggle("ready", Boolean(activeDmUser && dmComposerInput.value.trim()));
+    }
+
+    function sendMessage(input = dmComposerInput) {
+      const text = input.value.trim();
+      if (!text) return;
+      if (input === newComposerInput && !ensureDirectMessageRoom()) return;
+      const messageData = normalizeMessage({
+        id: `message-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        sender: "根本 理沙",
+        text,
+        sentAt: new Date(),
+        reactions: [],
+      });
+      if (!directMessages.has(activeDmUser.email)) directMessages.set(activeDmUser.email, []);
+      directMessages.get(activeDmUser.email).push(messageData);
+      saveMessages();
+      renderSentMessage(messageData);
+      input.value = "";
+      updateSendState();
+      scheduleAutoReaction(activeDmUser.email, messageData.id);
+    }
+
+    function addReaction(roomEmail, messageId, emoji) {
+      const messages = directMessages.get(roomEmail) || [];
+      const message = messages.find((item) => item.id === messageId);
+      if (!message) return;
+      const reaction = message.reactions.find((item) => item.emoji === emoji);
+      if (reaction) {
+        reaction.count += 1;
+      } else {
+        message.reactions.push({ emoji, count: 1 });
+      }
+      saveMessages();
+      if (activeDmUser.email === roomEmail) renderDmRoom(activeDmUser);
+    }
+
+    function scheduleAutoReaction(roomEmail, messageId) {
+      window.setTimeout(() => addReaction(roomEmail, messageId, autoReactionEmoji), 3000);
+    }
+
+    function hydratePersistedRooms() {
+      savedRooms.forEach((user) => buildDirectMessageRoom(user));
+    }
+
+    newDmButton.addEventListener("click", () => {
+      activateComposerMode();
+      recipientInput.focus();
+    });
+
+    dmList.addEventListener("click", (event) => {
+      const item = event.target.closest(".nav-item");
+      if (!item?.dataset.email) return;
+      const user = roomUsers.get(item.dataset.email);
+      if (!user) return;
+      selectedUser = user;
+      buildDirectMessageRoom(user);
+      setActiveDm(user);
+      activateDmMode();
     });
 
     recipientInput.addEventListener("focus", renderSuggestions);
@@ -549,8 +889,38 @@
     suggestions.addEventListener("click", (event) => {
       const item = event.target.closest(".suggestion-item");
       if (!item) return;
-      recipientInput.value = item.dataset.name;
+      selectedUser = organizationUsers.find((user) => user.email === item.dataset.email) || null;
+      recipientInput.value = selectedUser ? selectedUser.name : "";
       suggestions.classList.remove("visible");
+      updateSendState();
+    });
+
+    newComposerInput.addEventListener("focus", ensureDirectMessageRoom);
+    newComposerInput.addEventListener("click", ensureDirectMessageRoom);
+    newComposerInput.addEventListener("input", updateSendState);
+    newComposerInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage(newComposerInput);
+      }
+    });
+    newComposerSend.addEventListener("click", () => sendMessage(newComposerInput));
+
+    dmComposerInput.addEventListener("input", updateSendState);
+    dmComposerInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage(dmComposerInput);
+      }
+    });
+    dmComposerSend.addEventListener("click", () => sendMessage(dmComposerInput));
+
+    messagePane.addEventListener("click", (event) => {
+      const button = event.target.closest(".reaction-button");
+      if (!button) return;
+      const message = button.closest(".message");
+      if (!message?.dataset.messageId) return;
+      addReaction(activeDmUser.email, message.dataset.messageId, button.dataset.emoji);
     });
 
     document.addEventListener("click", (event) => {
@@ -558,6 +928,9 @@
         suggestions.classList.remove("visible");
       }
     });
+
+    hydratePersistedRooms();
+    renderDmRoom(activeDmUser);
   </script>
 </body>
 </html>
