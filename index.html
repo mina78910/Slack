@@ -277,6 +277,8 @@
     .plus { opacity: .85; }
     .presence { width: 9px; height: 9px; border-radius: 50%; background: #2bac76; flex: 0 0 auto; }
     .presence.away { background: transparent; border: 1px solid #b79ab7; }
+    .dm-avatar { width: 18px; height: 18px; border-radius: 4px; display: grid; place-items: center; overflow: hidden; flex: 0 0 auto; }
+    .dm-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     .main {
       display: flex;
@@ -327,8 +329,9 @@
     }
     .dm-menu-row span:first-child { color: #111; }
     .profile-card { margin-top: 175px; display: flex; gap: 12px; align-items: flex-start; }
-    .avatar { width: 52px; height: 52px; border-radius: 4px; background: linear-gradient(#69c8ee, #49a9e8); display: grid; place-items: center; font-size: 34px; flex: 0 0 auto; }
+    .avatar { width: 52px; height: 52px; border-radius: 4px; background: linear-gradient(#69c8ee, #49a9e8); display: grid; place-items: center; font-size: 34px; flex: 0 0 auto; overflow: hidden; }
     .avatar.small { width: 36px; height: 36px; font-size: 24px; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .person-name { font-weight: 800; }
     .tag { color: #1264a3; background: #e7f5ff; border-radius: 3px; padding: 0 2px; }
     .intro { margin: 12px 0 32px; font-size: 17px; line-height: 1.45; }
@@ -497,7 +500,8 @@
     }
 
     .suggestion-item:hover { background: #f6f6f6; }
-    .suggestion-avatar { width: 30px; height: 30px; border-radius: 4px; display: grid; place-items: center; background: #e8f5ff; }
+    .suggestion-avatar { width: 30px; height: 30px; border-radius: 4px; display: grid; place-items: center; background: #e8f5ff; overflow: hidden; }
+    .suggestion-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .suggestion-name { font-weight: 700; }
     .suggestion-email { color: var(--muted); font-size: 12px; margin-top: 2px; }
 
@@ -1038,11 +1042,11 @@
     let currentUserName = "あなた";
 
     const organizationUsers = [
-      { name: "大野 智", email: "satoshi.ohno@example.com", icon: "🎣" },
-      { name: "櫻井 翔", email: "sho.sakurai@example.com", icon: "🎤" },
-      { name: "相葉 雅紀", email: "masaki.aiba@example.com", icon: "🌿" },
-      { name: "二宮 和也", email: "kazunari.ninomiya@example.com", icon: "🎮" },
-      { name: "松本 潤", email: "jun.matsumoto@example.com", icon: "✨" },
+      { name: "大野 智", email: "satoshi.ohno@example.com", icon: "user-icons/ono.jpeg" },
+      { name: "櫻井 翔", email: "sho.sakurai@example.com", icon: "user-icons/sakurai.jpeg" },
+      { name: "相葉 雅紀", email: "masaki.aiba@example.com", icon: "user-icons/aiba.jpeg" },
+      { name: "二宮 和也", email: "kazunari.ninomiya@example.com", icon: "user-icons/ninomiya.jpeg" },
+      { name: "松本 潤", email: "jun.matsumoto@example.com", icon: "user-icons/matsumoto.jpeg" },
     ];
     const defaultDmUsers = [
       { name: "Slackbot", email: "slackbot@example.com", icon: "🤖" },
@@ -1169,6 +1173,23 @@
       return element;
     }
 
+    function isImageIcon(icon) {
+      return typeof icon === "string" && /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(icon);
+    }
+
+    function createAvatarElement(className, icon, fallback = "👤", alt = "") {
+      const avatar = createElement("div", className);
+      if (isImageIcon(icon)) {
+        const image = document.createElement("img");
+        image.src = icon;
+        image.alt = alt;
+        avatar.append(image);
+      } else {
+        avatar.textContent = icon || fallback;
+      }
+      return avatar;
+    }
+
     function renderSuggestions() {
       suggestions.replaceChildren();
       shuffleUsers(organizationUsers.filter((user) => !removedUserEmails.has(user.email))).forEach((user) => {
@@ -1177,7 +1198,7 @@
         item.tabIndex = 0;
         item.dataset.email = user.email;
 
-        const avatar = createElement("div", "suggestion-avatar", user.icon);
+        const avatar = createAvatarElement("suggestion-avatar", user.icon, "👤", `${user.name}のアイコン`);
         const info = createElement("div");
         info.append(createElement("div", "suggestion-name", user.name));
         info.append(createElement("div", "suggestion-email", user.email));
@@ -1214,7 +1235,7 @@
         const item = createElement("div", "nav-item");
         item.dataset.email = user.email;
         item.append(
-          createElement("span", "presence away"),
+          createAvatarElement("dm-avatar", user.icon, "👤", `${user.name}のアイコン`),
           createElement("span", "name", user.name),
           createElement("span", "dm-preview", getLatestDmPreview(user.email)),
           createElement("span", "unread-badge", "0")
@@ -1250,7 +1271,7 @@
     function renderDmRoom(user) {
       messagePane.replaceChildren();
       const profile = createElement("div", "profile-card");
-      profile.append(createElement("div", "avatar", user.icon || "👤"));
+      profile.append(createAvatarElement("avatar", user.icon, "👤", `${user.name}のアイコン`));
       const details = createElement("div");
       details.append(createElement("div", "person-name", user.name));
       details.append(createElement("div", null, user.email || "Slack"));
@@ -1278,7 +1299,7 @@
       const message = createElement("article", "message");
       message.dataset.messageId = messageData.id;
       const isCurrentUserMessage = messageData.sender === currentUserEmail;
-      const avatar = createElement("div", "avatar small", isCurrentUserMessage ? currentUserIcon : activeDmUser.icon || "👤");
+      const avatar = createAvatarElement("avatar small", isCurrentUserMessage ? currentUserIcon : activeDmUser.icon, "👤", `${getDisplaySenderName(messageData.sender)}のアイコン`);
       const content = createElement("div", "message-content");
       const header = createElement("div");
       header.append(createElement("span", "person-name", getDisplaySenderName(messageData.sender)));
