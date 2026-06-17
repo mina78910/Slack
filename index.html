@@ -309,7 +309,7 @@
     }
 
     .dm-title { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
-    .dm-subtitle { color: var(--muted); font-size: 13px; margin-top: 3px; }
+    .dm-subtitle { color: var(--muted); font-size: 13px; margin-top: 3px; display: flex; align-items: center; gap: 6px; }
     .top-actions { display: flex; align-items: center; gap: 16px; color: #555; font-size: 20px; }
 
     .search-box {
@@ -968,7 +968,7 @@
         <button class="mobile-back-button" type="button" aria-label="DM一覧に戻る">‹</button>
         <div>
           <div class="dm-title">Slackbot</div>
-          <div class="dm-subtitle">☆ 0 離席中</div>
+          <div class="dm-subtitle"><span class="online-dot"></span><span>アクティブ</span></div>
         </div>
         <div class="top-actions"><span>📞</span><span>ⓘ</span><span>⚙</span><div class="search-box">⌕ <span>検索</span></div><span>@</span><span>☆</span><span>⋮</span></div>
       </header>
@@ -1289,6 +1289,13 @@
       appShell.classList.toggle("mobile-chat-open", isOpen);
     }
 
+    function updateDmPresenceStatus() {
+      dmSubtitle.replaceChildren(
+        createElement("span", "online-dot"),
+        createElement("span", null, "アクティブ")
+      );
+    }
+
     function setActiveDm(user) {
       if (removedUserEmails.has(user.email)) return;
       roomUsers.set(user.email, user);
@@ -1300,7 +1307,7 @@
         item.classList.toggle("active", item.dataset.email === user.email);
       });
       dmTitle.textContent = user.name;
-      dmSubtitle.textContent = "☆ 0 離席中";
+      updateDmPresenceStatus();
       newMessageBody.dataset.room = user.email;
       renderDmRoom(user);
     }
