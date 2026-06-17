@@ -27,9 +27,16 @@
       --muted: #616061;
       --border: #dddddd;
       --accent: #ff6978;
+      --app-height: 100vh;
+      --mobile-bottom-nav-clearance: calc(92px + env(safe-area-inset-bottom));
     }
 
     * { box-sizing: border-box; }
+
+    html {
+      min-height: 100%;
+      overflow: hidden;
+    }
 
     body {
       margin: 0;
@@ -38,6 +45,8 @@
       color: var(--text);
       background: #ffffff;
     }
+
+    body.app-started { overflow: hidden; }
 
     body:not(.app-started) .app-shell,
     body:not(.app-started) .mobile-bottom-nav { display: none; }
@@ -558,12 +567,22 @@
     }
 
     @media (max-width: 640px) {
-      body { min-width: 0; }
+      body {
+        min-width: 0;
+        height: var(--app-height);
+        min-height: var(--app-height);
+        overflow: hidden;
+        overscroll-behavior: none;
+        touch-action: pan-x pan-y;
+      }
 
       .app-shell,
       .app-shell.composer-mode-shell,
       .app-shell.dm-room-shell {
-        height: 100dvh;
+        position: fixed;
+        inset: 0;
+        height: var(--app-height);
+        max-height: var(--app-height);
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: minmax(0, 1fr);
       }
@@ -575,8 +594,8 @@
 
       .sidebar {
         min-height: 0;
-        height: 100dvh;
-        max-height: none;
+        height: var(--app-height);
+        max-height: var(--app-height);
         border-right: 0;
         border-bottom: 0;
       }
@@ -616,8 +635,10 @@
       .nav-scroll {
         flex: 1;
         min-height: 0;
-        padding: 0;
+        padding: 0 0 var(--mobile-bottom-nav-clearance);
         overflow-y: auto;
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
       }
 
       .nav-scroll > .nav-item.dim,
@@ -743,7 +764,11 @@
         font-size: 13px;
       }
 
-      .message-pane { padding: 0 12px 92px; }
+      .message-pane {
+        padding: 0 12px var(--mobile-bottom-nav-clearance);
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
+      }
       .profile-card { margin-top: 28px; }
       .intro { margin-bottom: 22px; font-size: 15px; }
       .message { padding-right: 0; margin: 16px 0; }
@@ -771,14 +796,18 @@
         overflow-y: auto;
       }
 
-      .new-message-body { padding: 12px; }
+      .new-message-body {
+        padding: 12px 12px var(--mobile-bottom-nav-clearance);
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
+      }
 
       .composer-shell {
-        margin: 0 8px 78px;
+        margin: 0 8px var(--mobile-bottom-nav-clearance);
         border-radius: 8px;
       }
 
-      .dm-view > .composer-shell { margin-bottom: 78px; }
+      .dm-view > .composer-shell { margin-bottom: var(--mobile-bottom-nav-clearance); }
 
       .mobile-bottom-nav {
         position: fixed;
@@ -1033,6 +1062,14 @@
   </nav>
 
   <script>
+    function syncAppHeight() {
+      document.documentElement.style.setProperty("--app-height", `${window.innerHeight}px`);
+    }
+
+    syncAppHeight();
+    window.addEventListener("resize", syncAppHeight);
+    window.addEventListener("orientationchange", syncAppHeight);
+
     const currentUserEmail = "risa.nemoto@example.com";
     const currentUserIcon = "👩🏻‍💼";
     let currentUserName = "あなた";
