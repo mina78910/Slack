@@ -28,6 +28,7 @@
       --border: #dddddd;
       --accent: #ff6978;
       --app-height: 100vh;
+      --mobile-bottom-nav-clearance: calc(92px + env(safe-area-inset-bottom));
     }
 
     * { box-sizing: border-box; }
@@ -634,7 +635,7 @@
       .nav-scroll {
         flex: 1;
         min-height: 0;
-        padding: 0;
+        padding: 0 0 var(--mobile-bottom-nav-clearance);
         overflow-y: auto;
         overscroll-behavior-y: contain;
         -webkit-overflow-scrolling: touch;
@@ -764,7 +765,7 @@
       }
 
       .message-pane {
-        padding: 0 12px 92px;
+        padding: 0 12px var(--mobile-bottom-nav-clearance);
         overscroll-behavior-y: contain;
         -webkit-overflow-scrolling: touch;
       }
@@ -796,17 +797,17 @@
       }
 
       .new-message-body {
-        padding: 12px;
+        padding: 12px 12px var(--mobile-bottom-nav-clearance);
         overscroll-behavior-y: contain;
         -webkit-overflow-scrolling: touch;
       }
 
       .composer-shell {
-        margin: 0 8px 78px;
+        margin: 0 8px var(--mobile-bottom-nav-clearance);
         border-radius: 8px;
       }
 
-      .dm-view > .composer-shell { margin-bottom: 78px; }
+      .dm-view > .composer-shell { margin-bottom: var(--mobile-bottom-nav-clearance); }
 
       .mobile-bottom-nav {
         position: fixed;
