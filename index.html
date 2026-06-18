@@ -386,6 +386,85 @@
     .reply { margin-top: 6px; color: #1264a3; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; }
     .reply .mini-face { width: 24px; height: 24px; border-radius: 4px; background: #64c8ee; display: grid; place-items: center; }
 
+
+    .profile-panel {
+      display: none;
+      min-width: 0;
+      border-left: 1px solid var(--border);
+      background: #ffffff;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .app-shell.profile-open { grid-template-columns: 60px 205px minmax(410px, 1fr) 380px; }
+    .app-shell.profile-open .thread { display: none; }
+    .app-shell.profile-open .profile-panel { display: flex; }
+
+    .profile-panel-header {
+      height: 64px;
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex: 0 0 auto;
+    }
+
+    .profile-panel-title { font-size: 18px; font-weight: 800; }
+    .profile-close-button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: #616061;
+      font: inherit;
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+    }
+
+    .profile-panel-body { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 24px; }
+    .profile-hero { padding: 20px 16px 16px; }
+    .profile-photo {
+      width: 184px;
+      height: 184px;
+      margin: 0 auto 14px;
+      border-radius: 8px;
+      background: linear-gradient(#69c8ee, #49a9e8);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      font-size: 96px;
+    }
+    .profile-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .profile-name-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .profile-name { font-size: 22px; font-weight: 900; }
+    .profile-edit-link, .profile-add-link { color: #1264a3; font-size: 13px; font-weight: 700; }
+    .profile-role { margin-top: 4px; font-size: 15px; }
+    .profile-status, .profile-local-time { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: #424142; font-size: 14px; }
+    .profile-action-row { display: grid; grid-template-columns: 1fr 1fr 38px; gap: 6px; margin-top: 14px; }
+    .profile-action-row.other-user-actions { grid-template-columns: 1fr 1fr; }
+    .profile-action-button {
+      height: 34px;
+      border: 1px solid #c9c9c9;
+      border-radius: 6px;
+      background: #ffffff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .profile-action-button:disabled { color: #1d1c1d; cursor: default; opacity: .65; }
+    .profile-section { border-top: 1px solid #eeeeee; padding: 18px 16px; }
+    .profile-section-title { display: flex; justify-content: space-between; gap: 8px; font-weight: 800; margin-bottom: 12px; }
+    .profile-contact { display: flex; gap: 10px; align-items: flex-start; color: #424142; font-size: 14px; }
+    .profile-contact-icon { width: 28px; height: 28px; border: 1px solid #d8d8d8; border-radius: 4px; display: grid; place-items: center; flex: 0 0 auto; }
+    .profile-contact-label { color: #616061; font-size: 13px; font-weight: 700; }
+    .profile-contact-value { color: #1264a3; margin-top: 2px; overflow-wrap: anywhere; }
+    .avatar-button { cursor: pointer; }
+    .avatar-button:focus-visible { outline: 2px solid #1264a3; outline-offset: 2px; }
+
     .thread {
       border-left: 4px solid var(--accent);
       border-top: 4px solid var(--accent);
@@ -516,6 +595,9 @@
 
     .app-shell.composer-mode-shell,
     .app-shell.dm-room-shell { grid-template-columns: 60px 205px minmax(410px, 1fr); }
+    .app-shell.profile-open,
+    .app-shell.dm-room-shell.profile-open,
+    .app-shell.composer-mode-shell.profile-open { grid-template-columns: 60px 205px minmax(410px, 1fr) 380px; }
     .app-shell.composer-mode-shell .thread,
     .app-shell.dm-room-shell .thread { display: none; }
 
@@ -595,6 +677,20 @@
       .thread {
         display: none;
       }
+
+      .app-shell.profile-open { grid-template-columns: minmax(0, 1fr); }
+      .app-shell.profile-open .main { display: none; }
+      .app-shell.profile-open .profile-panel {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        height: var(--app-height);
+        max-height: var(--app-height);
+      }
+      .profile-panel-header { min-height: 58px; height: 58px; }
+      .profile-panel-body { padding-bottom: var(--mobile-bottom-nav-clearance); }
+      .profile-photo { width: min(58vw, 220px); height: min(58vw, 220px); }
 
       .sidebar {
         min-height: 0;
@@ -1035,6 +1131,14 @@
       </section>
     </main>
 
+    <aside class="profile-panel" aria-label="プロフィール" aria-hidden="true">
+      <header class="profile-panel-header">
+        <div class="profile-panel-title">プロフィール</div>
+        <button class="profile-close-button" type="button" aria-label="プロフィールを閉じる">×</button>
+      </header>
+      <div class="profile-panel-body"></div>
+    </aside>
+
     <aside class="thread" aria-label="スレッド">
       <div class="thread-header">
         <div><div class="thread-title">スレッド</div><div class="thread-sub">Slackbot</div></div>
@@ -1127,6 +1231,9 @@
     const mobileBackButton = document.querySelector(".mobile-back-button");
     const mobileDmButton = document.querySelector(".mobile-dm-button");
     const mobileHomeButton = document.querySelector(".mobile-home-button");
+    const profilePanel = document.querySelector(".profile-panel");
+    const profilePanelBody = document.querySelector(".profile-panel-body");
+    const profileCloseButton = document.querySelector(".profile-close-button");
     const startForm = document.querySelector(".start-card");
     const playerNameInput = document.querySelector(".start-input");
     const currentUserNameLabel = document.querySelector(".current-user-name");
@@ -1136,6 +1243,7 @@
     currentUserDmNameLabel.textContent = `${currentUserName}（自分）`;
 
     let selectedUser = null;
+    let activeProfileUser = null;
     let activeDmUser = { name: "Slackbot", icon: "🤖", email: "slackbot@example.com" };
     const savedRooms = [];
     const roomUsers = new Map([...allKnownUsers, ...savedRooms].map((user) => [user.email, user]));
@@ -1224,8 +1332,84 @@
       } else {
         avatar.textContent = icon || fallback;
       }
+      avatar.classList.add("avatar-button");
+      avatar.setAttribute("role", "button");
+      avatar.tabIndex = 0;
       return avatar;
     }
+
+
+    function renderProfilePanel(user) {
+      profilePanelBody.replaceChildren();
+      const hero = createElement("section", "profile-hero");
+      hero.append(createAvatarElement("profile-photo", user.icon, "👤", `${user.name}のプロフィール画像`));
+      const nameRow = createElement("div", "profile-name-row");
+      nameRow.append(createElement("div", "profile-name", user.name), createElement("span", "profile-edit-link", "編集"));
+      hero.append(nameRow);
+      hero.append(createElement("div", "profile-role", user.email === "slackbot@example.com" ? "ワークスペースサポート" : "スタッフメンバー"));
+      hero.append(createElement("div", "profile-status", "●  アクティブ"));
+      hero.append(createElement("div", "profile-local-time", `◷  現地時間 ${new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`));
+      const isSelfProfile = user.email === currentUserEmail;
+      const actions = createElement("div", isSelfProfile ? "profile-action-row" : "profile-action-row other-user-actions");
+      if (isSelfProfile) {
+        ["ステータスを設定", "表示条件", "⋮"].forEach((label) => {
+          const button = createElement("button", "profile-action-button", label);
+          button.type = "button";
+          actions.append(button);
+        });
+      } else {
+        const messageButton = createElement("button", "profile-action-button", "⌕ メッセージ");
+        messageButton.type = "button";
+        messageButton.dataset.profileAction = "message";
+        const huddleButton = createElement("button", "profile-action-button", "🎧 ハドルミーティング⌄");
+        huddleButton.type = "button";
+        huddleButton.disabled = true;
+        huddleButton.setAttribute("aria-disabled", "true");
+        actions.append(messageButton, huddleButton);
+      }
+      hero.append(actions);
+
+      const contact = createElement("section", "profile-section");
+      const contactTitle = createElement("div", "profile-section-title");
+      contactTitle.append(createElement("span", null, "連絡先情報"), createElement("span", "profile-edit-link", "編集"));
+      const contactRow = createElement("div", "profile-contact");
+      const contactInfo = createElement("div");
+      contactInfo.append(createElement("div", "profile-contact-label", "メールアドレス"), createElement("div", "profile-contact-value", user.email || "slack@example.com"));
+      contactRow.append(createElement("div", "profile-contact-icon", "✉"), contactInfo);
+      contact.append(contactTitle, contactRow, createElement("div", "profile-add-link", "+ 電話を追加する"));
+
+      const summary = createElement("section", "profile-section");
+      const summaryTitle = createElement("div", "profile-section-title");
+      summaryTitle.append(createElement("span", null, "自分の概要"), createElement("span", "profile-edit-link", "編集"));
+      summary.append(summaryTitle, createElement("div", "profile-add-link", "+ 入社日を追加する"), createElement("div", "profile-add-link", "+ 役割の説明を追加する"));
+      profilePanelBody.append(hero, contact, summary);
+    }
+
+    function openProfilePanel(user) {
+      if (!user) return;
+      activeProfileUser = user;
+      renderProfilePanel(user);
+      appShell.classList.add("profile-open");
+      profilePanel.setAttribute("aria-hidden", "false");
+    }
+
+    function closeProfilePanel() {
+      appShell.classList.remove("profile-open");
+      profilePanel.setAttribute("aria-hidden", "true");
+    }
+
+    function showDirectMessageWithUser(user) {
+      if (!user || removedUserEmails.has(user.email)) return;
+      selectedUser = user;
+      buildDirectMessageRoom(user);
+      setActiveDm(user);
+      activateDmMode();
+      setMobileChatOpen(true);
+      closeProfilePanel();
+      mobileDmButton.classList.add("active");
+      mobileHomeButton.classList.remove("active");
+    }
+
 
     function renderSuggestions() {
       suggestions.replaceChildren();
@@ -1530,6 +1714,7 @@
     });
 
     mobileDmButton.addEventListener("click", () => {
+      closeProfilePanel();
       activateDmMode();
       setMobileChatOpen(false);
       mobileDmButton.classList.add("active");
@@ -1537,6 +1722,7 @@
     });
 
     mobileHomeButton.addEventListener("click", () => {
+      closeProfilePanel();
       activateDmMode();
       setMobileChatOpen(false);
       mobileHomeButton.classList.add("active");
@@ -1544,11 +1730,28 @@
     });
 
     mobileBackButton.addEventListener("click", () => {
+      closeProfilePanel();
       setMobileChatOpen(false);
       main.classList.remove("composer-mode");
       newMessageView.classList.remove("active");
       appShell.classList.remove("composer-mode-shell");
       appShell.classList.add("dm-room-shell");
+    });
+
+    profileCloseButton.addEventListener("click", closeProfilePanel);
+
+    profilePanel.addEventListener("click", (event) => {
+      const messageButton = event.target.closest('[data-profile-action="message"]');
+      if (!messageButton || !activeProfileUser) return;
+      showDirectMessageWithUser(activeProfileUser);
+    });
+
+    messagePane.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const avatar = event.target.closest(".avatar-button");
+      if (!avatar) return;
+      event.preventDefault();
+      openProfilePanel(avatar.closest(".message") ? (avatar.closest(".message").querySelector(".person-name")?.textContent === currentUserName ? roomUsers.get(currentUserEmail) : activeDmUser) : activeDmUser);
     });
 
     dmList.addEventListener("click", (event) => {
@@ -1603,6 +1806,11 @@
     dmComposerSend.addEventListener("click", () => sendMessage(dmComposerInput));
 
     messagePane.addEventListener("click", (event) => {
+      const avatar = event.target.closest(".avatar-button");
+      if (avatar) {
+        openProfilePanel(avatar.closest(".message") ? (avatar.closest(".message").querySelector(".person-name")?.textContent === currentUserName ? roomUsers.get(currentUserEmail) : activeDmUser) : activeDmUser);
+        return;
+      }
       const button = event.target.closest(".reaction-button");
       if (!button) return;
       const message = button.closest(".message");
