@@ -418,12 +418,18 @@
     .reaction-button:hover { background: #f1f1f1; }
     .reaction-list { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
     .reaction-pill {
+      appearance: none;
       border: 1px solid #d8d8d8;
       border-radius: 999px;
       background: #f8f8f8;
       padding: 1px 7px;
+      font: inherit;
       font-size: 13px;
+      cursor: default;
+      position: relative;
     }
+    .reaction-pill:focus-visible { outline: 2px solid #1264a3; outline-offset: 1px; }
+    .reaction-pill[title] { cursor: pointer; }
     .reaction-pill-kusa {
       border-color: #1f9d55;
       background: #e6f6ec;
@@ -432,6 +438,33 @@
     }
     .reply { margin-top: 6px; color: #1264a3; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; }
     .reply .mini-face { width: 24px; height: 24px; border-radius: 4px; background: #64c8ee; display: grid; place-items: center; }
+
+    .reaction-detail-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      align-items: flex-end;
+      background: rgba(0,0,0,.58);
+    }
+    .reaction-detail-backdrop.open { display: flex; }
+    .reaction-detail-sheet {
+      width: 100%;
+      max-height: min(68vh, 520px);
+      overflow: hidden;
+      border-radius: 14px 14px 0 0;
+      background: #ffffff;
+      box-shadow: 0 -8px 30px rgba(0,0,0,.2);
+    }
+    .reaction-detail-handle { width: 48px; height: 5px; border-radius: 999px; background: #d0d0d0; margin: 9px auto 12px; }
+    .reaction-detail-summary { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 18px; font-weight: 800; padding-bottom: 12px; border-bottom: 3px solid #009688; }
+    .reaction-detail-label { padding: 12px 16px; color: #616061; background: #f7f7f7; font-size: 15px; }
+    .reaction-detail-list { padding: 8px 0 22px; overflow-y: auto; max-height: 390px; }
+    .reaction-detail-user { display: flex; align-items: center; gap: 12px; padding: 10px 16px; }
+    .reaction-detail-avatar { width: 38px; height: 38px; border-radius: 8px; display: grid; place-items: center; overflow: hidden; font-size: 24px; background: #e7f5ff; flex: 0 0 auto; }
+    .reaction-detail-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .reaction-detail-name { font-weight: 800; }
+    .reaction-detail-role { color: #616061; font-size: 13px; margin-top: 2px; }
 
 
     .profile-panel {
@@ -1329,6 +1362,15 @@
     </section>
   </div>
 
+  <div class="reaction-detail-backdrop" aria-hidden="true">
+    <section class="reaction-detail-sheet" role="dialog" aria-modal="true" aria-label="リアクションした人">
+      <div class="reaction-detail-handle"></div>
+      <div class="reaction-detail-summary"><span class="reaction-detail-emoji"></span><span class="reaction-detail-count"></span></div>
+      <div class="reaction-detail-label"></div>
+      <div class="reaction-detail-list"></div>
+    </section>
+  </div>
+
   <nav class="mobile-bottom-nav" aria-label="モバイルメニュー">
     <div class="mobile-nav-group">
       <button class="mobile-nav-item active mobile-home-button nav-home-button" type="button"><span class="mobile-nav-icon">⌂</span><span>ホーム</span></button>
@@ -1432,6 +1474,11 @@
     const memberModalTabCount = document.querySelector(".member-modal-tab-count");
     const memberList = document.querySelector(".member-list");
     const memberModalSearch = document.querySelector(".member-modal-search");
+    const reactionDetailBackdrop = document.querySelector(".reaction-detail-backdrop");
+    const reactionDetailEmoji = document.querySelector(".reaction-detail-emoji");
+    const reactionDetailCount = document.querySelector(".reaction-detail-count");
+    const reactionDetailLabel = document.querySelector(".reaction-detail-label");
+    const reactionDetailList = document.querySelector(".reaction-detail-list");
     const startForm = document.querySelector(".start-card");
     const playerNameInput = document.querySelector(".start-input");
     const currentUserNameLabel = document.querySelector(".current-user-name");
@@ -1557,7 +1604,7 @@
         sentAt: new Date(message.sentAt || Date.now()),
         reactions: Array.isArray(message.reactions)
           ? message.reactions.map((reaction) => (
-            typeof reaction === "string" ? { emoji: reaction, count: 1 } : { emoji: reaction.emoji, count: reaction.count || 1 }
+            typeof reaction === "string" ? { emoji: reaction, count: 1, users: [] } : { emoji: reaction.emoji, count: reaction.count || reaction.users?.length || 1, users: Array.isArray(reaction.users) ? reaction.users : [] }
           )).filter((reaction) => reaction.emoji)
           : [],
       };
@@ -1879,12 +1926,55 @@
     }
 
 
+    function getReactionUsers(reaction) {
+      return (reaction.users || []).map((email) => roomUsers.get(email) || channelMembers.find((user) => user.email === email)).filter(Boolean);
+    }
+
+    function getReactionTitle(reaction) {
+      const names = getReactionUsers(reaction).map((user) => user.email === currentUserEmail ? `${currentUserName}（自分）` : user.name);
+      return names.length ? `${names.join(", ")}が${reaction.emoji}でリアクションしました` : "";
+    }
+
     function renderReactionList(container, reactions) {
       container.replaceChildren();
       reactions.forEach((reaction) => {
+        reaction.count = reaction.users?.length || reaction.count || 1;
         const className = reaction.emoji === kusaReactionEmoji ? "reaction-pill reaction-pill-kusa" : "reaction-pill";
-        container.append(createElement("span", className, `${reaction.emoji} ${reaction.count}`));
+        const pill = createElement("button", className, `${reaction.emoji} ${reaction.count}`);
+        pill.type = "button";
+        pill.dataset.emoji = reaction.emoji;
+        const title = getReactionTitle(reaction);
+        if (title) {
+          pill.title = title;
+          pill.setAttribute("aria-label", title);
+        }
+        container.append(pill);
       });
+    }
+
+    function openReactionDetail(reaction) {
+      const users = getReactionUsers(reaction);
+      if (!users.length) return;
+      reactionDetailEmoji.textContent = reaction.emoji;
+      reactionDetailCount.textContent = String(users.length);
+      reactionDetailLabel.textContent = `${reaction.emoji} リアクション`;
+      reactionDetailList.replaceChildren();
+      users.forEach((user) => {
+        const row = createElement("div", "reaction-detail-user");
+        row.append(createAvatarElement("reaction-detail-avatar", user.icon, "👤", `${user.name}のアイコン`));
+        const info = createElement("div");
+        info.append(createElement("div", "reaction-detail-name", user.email === currentUserEmail ? `${currentUserName}（自分）` : user.name));
+        info.append(createElement("div", "reaction-detail-role", user.email === currentUserEmail ? currentUserName : (user.email === "slackbot@example.com" ? "ワークスペースサポート" : "プロジェクトリーダー")));
+        row.append(info);
+        reactionDetailList.append(row);
+      });
+      reactionDetailBackdrop.classList.add("open");
+      reactionDetailBackdrop.setAttribute("aria-hidden", "false");
+    }
+
+    function closeReactionDetail() {
+      reactionDetailBackdrop.classList.remove("open");
+      reactionDetailBackdrop.setAttribute("aria-hidden", "true");
     }
 
     function renderSentMessage(messageData) {
@@ -1917,24 +2007,31 @@
       updateDmPreview(activeDmUser.email);
       input.value = "";
       updateSendState();
-      if (!isChannelRoom) scheduleAutoReaction(activeDmUser.email, messageData.id, text);
+      if (isChannelRoom) {
+        scheduleChannelReactions(activeDmUser.email, messageData.id);
+      } else {
+        scheduleAutoReaction(activeDmUser.email, messageData.id, text);
+      }
     }
 
-    function addReaction(roomEmail, messageId, emoji) {
+    function addReaction(roomEmail, messageId, emoji, reactorEmail = currentUserEmail) {
       const isChannelRoom = channelMessages.has(roomEmail);
       const messages = (isChannelRoom ? channelMessages : directMessages).get(roomEmail) || [];
       const message = messages.find((item) => item.id === messageId);
-      if (!message) return;
+      if (!message || message.sender === reactorEmail || reactorEmail === "slackbot@example.com") return;
       const reaction = message.reactions.find((item) => item.emoji === emoji);
       if (reaction) {
-        reaction.count += 1;
+        if (!Array.isArray(reaction.users)) reaction.users = [];
+        if (reaction.users.includes(reactorEmail)) return;
+        reaction.users.push(reactorEmail);
+        reaction.count = reaction.users.length;
       } else {
-        message.reactions.push({ emoji, count: 1 });
+        message.reactions.push({ emoji, count: 1, users: [reactorEmail] });
       }
       saveMessages();
       if (message.sender === currentUserEmail) {
-        const reactor = roomUsers.get(roomEmail) || activeDmUser;
-        addActivityEvent({ type: "reaction", emoji, sender: reactor.name, icon: reactor.icon, roomName: reactor.name, text: message.text });
+        const reactor = roomUsers.get(reactorEmail) || activeDmUser;
+        addActivityEvent({ type: "reaction", emoji, sender: reactor.name, icon: reactor.icon, roomName: isChannelRoom ? `# ${exchangeChannel.name}` : reactor.name, text: message.text });
       }
       if (activeDmUser.email === roomEmail) {
         if (isChannelRoom) {
@@ -1947,7 +2044,16 @@
 
     function scheduleAutoReaction(roomEmail, messageId, text = "") {
       const emoji = text.trim().endsWith(kusaReactionEmoji) ? kusaReactionEmoji : autoReactionEmoji;
-      window.setTimeout(() => addReaction(roomEmail, messageId, emoji), 3000);
+      window.setTimeout(() => addReaction(roomEmail, messageId, emoji, roomEmail), 3000);
+    }
+
+    function scheduleChannelReactions(roomEmail, messageId) {
+      const messages = channelMessages.get(roomEmail) || [];
+      const message = messages.find((item) => item.id === messageId);
+      if (!message) return;
+      channelMembers
+        .filter((user) => user.email !== message.sender && user.email !== "slackbot@example.com")
+        .forEach((user, index) => window.setTimeout(() => addReaction(roomEmail, messageId, autoReactionEmoji, user.email), 500 + index * 250));
     }
 
     function hydratePersistedRooms() {
@@ -2073,6 +2179,7 @@
         reactions: [],
       });
       channelMessages.get(channel.id).push(messageData);
+      scheduleChannelReactions(channel.id, messageData.id);
       if (text.includes(`@${currentUserName}`)) {
         addActivityEvent({ type: "mention", sender: user.name, icon: user.icon, roomName: `# ${channel.name}`, text });
       }
@@ -2256,11 +2363,34 @@
         openProfilePanel(avatar.closest(".message") ? (getUserByName(avatar.closest(".message").querySelector(".person-name")?.textContent) || activeDmUser) : activeDmUser);
         return;
       }
+      const pill = event.target.closest(".reaction-pill");
+      if (pill) return;
       const button = event.target.closest(".reaction-button");
       if (!button) return;
       const message = button.closest(".message");
       if (!message?.dataset.messageId) return;
-      addReaction(activeDmUser.email, message.dataset.messageId, button.dataset.emoji);
+      addReaction(activeDmUser.email, message.dataset.messageId, button.dataset.emoji, currentUserEmail);
+    });
+
+    let reactionLongPressTimer = null;
+    messagePane.addEventListener("pointerdown", (event) => {
+      const pill = event.target.closest(".reaction-pill");
+      if (!pill || !window.matchMedia("(pointer: coarse)").matches) return;
+      reactionLongPressTimer = window.setTimeout(() => {
+        const message = pill.closest(".message");
+        const messages = (channelMessages.has(activeDmUser.email) ? channelMessages : directMessages).get(activeDmUser.email) || [];
+        const messageData = messages.find((item) => item.id === message?.dataset.messageId);
+        const reaction = messageData?.reactions.find((item) => item.emoji === pill.dataset.emoji);
+        if (reaction) openReactionDetail(reaction);
+      }, 450);
+    });
+    ["pointerup", "pointercancel", "pointerleave"].forEach((type) => messagePane.addEventListener(type, () => {
+      if (reactionLongPressTimer) window.clearTimeout(reactionLongPressTimer);
+      reactionLongPressTimer = null;
+    }));
+
+    reactionDetailBackdrop.addEventListener("click", (event) => {
+      if (event.target === reactionDetailBackdrop) closeReactionDetail();
     });
 
     document.addEventListener("click", (event) => {
