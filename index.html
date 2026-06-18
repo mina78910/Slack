@@ -444,6 +444,7 @@
     .profile-role { margin-top: 4px; font-size: 15px; }
     .profile-status, .profile-local-time { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: #424142; font-size: 14px; }
     .profile-action-row { display: grid; grid-template-columns: 1fr 1fr 38px; gap: 6px; margin-top: 14px; }
+    .profile-action-row.other-user-actions { grid-template-columns: 1fr 1fr; }
     .profile-action-button {
       height: 34px;
       border: 1px solid #c9c9c9;
@@ -454,6 +455,7 @@
       font-weight: 800;
       cursor: pointer;
     }
+    .profile-action-button:disabled { color: #1d1c1d; cursor: default; opacity: .65; }
     .profile-section { border-top: 1px solid #eeeeee; padding: 18px 16px; }
     .profile-section-title { display: flex; justify-content: space-between; gap: 8px; font-weight: 800; margin-bottom: 12px; }
     .profile-contact { display: flex; gap: 10px; align-items: flex-start; color: #424142; font-size: 14px; }
@@ -1241,6 +1243,7 @@
     currentUserDmNameLabel.textContent = `${currentUserName}（自分）`;
 
     let selectedUser = null;
+    let activeProfileUser = null;
     let activeDmUser = { name: "Slackbot", icon: "🤖", email: "slackbot@example.com" };
     const savedRooms = [];
     const roomUsers = new Map([...allKnownUsers, ...savedRooms].map((user) => [user.email, user]));
@@ -1346,12 +1349,24 @@
       hero.append(createElement("div", "profile-role", user.email === "slackbot@example.com" ? "ワークスペースサポート" : "スタッフメンバー"));
       hero.append(createElement("div", "profile-status", "●  アクティブ"));
       hero.append(createElement("div", "profile-local-time", `◷  現地時間 ${new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`));
-      const actions = createElement("div", "profile-action-row");
-      ["ステータスを設定", "表示条件", "⋮"].forEach((label) => {
-        const button = createElement("button", "profile-action-button", label);
-        button.type = "button";
-        actions.append(button);
-      });
+      const isSelfProfile = user.email === currentUserEmail;
+      const actions = createElement("div", isSelfProfile ? "profile-action-row" : "profile-action-row other-user-actions");
+      if (isSelfProfile) {
+        ["ステータスを設定", "表示条件", "⋮"].forEach((label) => {
+          const button = createElement("button", "profile-action-button", label);
+          button.type = "button";
+          actions.append(button);
+        });
+      } else {
+        const messageButton = createElement("button", "profile-action-button", "⌕ メッセージ");
+        messageButton.type = "button";
+        messageButton.dataset.profileAction = "message";
+        const huddleButton = createElement("button", "profile-action-button", "🎧 ハドルミーティング⌄");
+        huddleButton.type = "button";
+        huddleButton.disabled = true;
+        huddleButton.setAttribute("aria-disabled", "true");
+        actions.append(messageButton, huddleButton);
+      }
       hero.append(actions);
 
       const contact = createElement("section", "profile-section");
@@ -1372,6 +1387,7 @@
 
     function openProfilePanel(user) {
       if (!user) return;
+      activeProfileUser = user;
       renderProfilePanel(user);
       appShell.classList.add("profile-open");
       profilePanel.setAttribute("aria-hidden", "false");
@@ -1381,6 +1397,19 @@
       appShell.classList.remove("profile-open");
       profilePanel.setAttribute("aria-hidden", "true");
     }
+
+    function showDirectMessageWithUser(user) {
+      if (!user || removedUserEmails.has(user.email)) return;
+      selectedUser = user;
+      buildDirectMessageRoom(user);
+      setActiveDm(user);
+      activateDmMode();
+      setMobileChatOpen(true);
+      closeProfilePanel();
+      mobileDmButton.classList.add("active");
+      mobileHomeButton.classList.remove("active");
+    }
+
 
     function renderSuggestions() {
       suggestions.replaceChildren();
@@ -1710,6 +1739,12 @@
     });
 
     profileCloseButton.addEventListener("click", closeProfilePanel);
+
+    profilePanel.addEventListener("click", (event) => {
+      const messageButton = event.target.closest('[data-profile-action="message"]');
+      if (!messageButton || !activeProfileUser) return;
+      showDirectMessageWithUser(activeProfileUser);
+    });
 
     messagePane.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") return;
