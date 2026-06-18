@@ -311,6 +311,28 @@
     .dm-title { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
     .dm-subtitle { color: var(--muted); font-size: 13px; margin-top: 3px; display: flex; align-items: center; gap: 6px; }
     .top-actions { display: flex; align-items: center; gap: 16px; color: #555; font-size: 20px; }
+    .member-count-button {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      height: 30px;
+      padding: 0 10px;
+      border: 1px solid #c9c9c9;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #424142;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .member-count-button.visible { display: inline-flex; }
+    .member-count-button:hover,
+    .member-count-button:focus-visible {
+      background: #f8f8f8;
+      outline: 2px solid #1264a3;
+      outline-offset: 1px;
+    }
 
     .search-box {
       width: 210px;
@@ -464,6 +486,78 @@
     .profile-contact-value { color: #1264a3; margin-top: 2px; overflow-wrap: anywhere; }
     .avatar-button { cursor: pointer; }
     .avatar-button:focus-visible { outline: 2px solid #1264a3; outline-offset: 2px; }
+
+    .member-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: rgba(0,0,0,.55);
+    }
+    .member-modal-backdrop.open { display: grid; }
+    .member-modal {
+      width: min(520px, 100%);
+      max-height: min(640px, calc(100vh - 48px));
+      display: flex;
+      flex-direction: column;
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 18px 48px rgba(0,0,0,.32);
+      overflow: hidden;
+    }
+    .member-modal-header {
+      padding: 18px 20px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .member-modal-title { font-size: 20px; font-weight: 900; }
+    .member-modal-close {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: #616061;
+      font: inherit;
+      font-size: 24px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .member-modal-tools { padding: 12px 20px 0; }
+    .member-modal-tabs {
+      display: flex;
+      gap: 22px;
+      border-bottom: 1px solid #eeeeee;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .member-modal-tab { padding: 0 0 9px; color: #424142; }
+    .member-modal-tab.active { border-bottom: 3px solid #611f69; color: #1d1c1d; }
+    .member-modal-search-row { display: grid; grid-template-columns: 1fr 140px; gap: 8px; margin-top: 12px; }
+    .member-modal-search, .member-modal-filter {
+      height: 34px;
+      border: 1px solid #c9c9c9;
+      border-radius: 6px;
+      padding: 0 10px;
+      font: inherit;
+      font-size: 14px;
+    }
+    .member-list { overflow-y: auto; padding: 12px 20px 20px; }
+    .member-list-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 54px;
+      border-radius: 6px;
+      padding: 7px 4px;
+    }
+    .member-list-item:hover { background: #f8f8f8; }
+    .member-list-avatar { width: 34px; height: 34px; border-radius: 5px; display: grid; place-items: center; overflow: hidden; background: #e8f5ff; flex: 0 0 auto; }
+    .member-list-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .member-list-name { font-weight: 800; }
+    .member-list-email { color: var(--muted); font-size: 12px; margin-top: 2px; }
 
     .thread {
       border-left: 4px solid var(--accent);
@@ -854,6 +948,12 @@
       }
 
       .top-actions span:nth-child(n+4) { display: none; }
+      .member-count-button.visible { display: inline-flex; }
+      body.mobile-dm-filter .channel-item[data-channel],
+      body.mobile-dm-filter .nav-scroll > .nav-item.dim { display: none; }
+      .member-modal-backdrop { padding: 14px; }
+      .member-modal { max-height: calc(var(--app-height) - 28px); }
+      .member-modal-search-row { grid-template-columns: 1fr; }
 
       .dm-menu-row {
         height: 38px;
@@ -1067,7 +1167,7 @@
           <div class="dm-title">Slackbot</div>
           <div class="dm-subtitle"><span class="online-dot"></span><span>アクティブ</span></div>
         </div>
-        <div class="top-actions"><span>📞</span><span>ⓘ</span><span>⚙</span><div class="search-box">⌕ <span>検索</span></div><span>@</span><span>☆</span><span>⋮</span></div>
+        <div class="top-actions"><button class="member-count-button" type="button" aria-label="メンバー一覧を表示">👥 <span class="member-count-label">0</span></button><span>📞</span><span>ⓘ</span><span>⚙</span><div class="search-box">⌕ <span>検索</span></div><span>@</span><span>☆</span><span>⋮</span></div>
       </header>
       <div class="dm-menu-row"><span>● メッセージ</span><span>♧ canvas を追加する</span><span>▱ ファイル</span><span>＋</span></div>
 
@@ -1160,6 +1260,20 @@
     </aside>
   </div>
 
+  <div class="member-modal-backdrop" aria-hidden="true">
+    <section class="member-modal" role="dialog" aria-modal="true" aria-labelledby="member-modal-title">
+      <header class="member-modal-header">
+        <div class="member-modal-title" id="member-modal-title"># STE_交流用Channnel</div>
+        <button class="member-modal-close" type="button" aria-label="メンバー一覧を閉じる">×</button>
+      </header>
+      <div class="member-modal-tools">
+        <div class="member-modal-tabs"><span class="member-modal-tab">チャンネル情報</span><span class="member-modal-tab active">メンバー <span class="member-modal-tab-count">0</span></span><span class="member-modal-tab">タブ</span><span class="member-modal-tab">設定</span></div>
+        <div class="member-modal-search-row"><input class="member-modal-search" type="search" placeholder="メンバーを検索" /><select class="member-modal-filter"><option>全員</option></select></div>
+      </div>
+      <div class="member-list"></div>
+    </section>
+  </div>
+
   <nav class="mobile-bottom-nav" aria-label="モバイルメニュー">
     <div class="mobile-nav-group">
       <button class="mobile-nav-item active mobile-home-button" type="button"><span class="mobile-nav-icon">⌂</span><span>ホーム</span></button>
@@ -1196,6 +1310,7 @@
     ];
     const removedUserEmails = new Set(["toda@example.com", "shigeru.watanabe@example.com"]);
     const allKnownUsers = [...defaultDmUsers, ...organizationUsers].filter((user) => !removedUserEmails.has(user.email));
+    const channelMembers = allKnownUsers;
     const reactionOptions = ["✅", "👀", "🙌", "😊"];
     const autoReactionEmoji = "🙌";
     const periodicDmIntervalMs = 15000;
@@ -1248,6 +1363,14 @@
     const profilePanel = document.querySelector(".profile-panel");
     const profilePanelBody = document.querySelector(".profile-panel-body");
     const profileCloseButton = document.querySelector(".profile-close-button");
+    const memberCountButton = document.querySelector(".member-count-button");
+    const memberCountLabel = document.querySelector(".member-count-label");
+    const memberModalBackdrop = document.querySelector(".member-modal-backdrop");
+    const memberModalClose = document.querySelector(".member-modal-close");
+    const memberModalTitle = document.querySelector(".member-modal-title");
+    const memberModalTabCount = document.querySelector(".member-modal-tab-count");
+    const memberList = document.querySelector(".member-list");
+    const memberModalSearch = document.querySelector(".member-modal-search");
     const startForm = document.querySelector(".start-card");
     const playerNameInput = document.querySelector(".start-input");
     const currentUserNameLabel = document.querySelector(".current-user-name");
@@ -1297,6 +1420,7 @@
       if (selfDmItem) selfDmItem.textContent = `${currentUserName}（自分）`;
       const slackbotMessages = directMessages.get("slackbot@example.com") || [];
       if (slackbotMessages[0]) slackbotMessages[0].text = `@${currentUserName} さん、必要なときはいつでもお手伝いします😊`;
+      updateMemberCountButton(false);
       renderDmRoom(activeDmUser);
     }
 
@@ -1354,6 +1478,46 @@
       return avatar;
     }
 
+
+    function getUserByName(name) {
+      return [...roomUsers.values(), ...channelMembers].find((user) => user.name === name || user.name.replace("（自分）", "") === name) || null;
+    }
+
+    function updateMemberCountButton(isChannel = channelMessages.has(activeDmUser.email)) {
+      memberCountLabel.textContent = String(channelMembers.length);
+      memberCountButton.classList.toggle("visible", isChannel);
+    }
+
+    function renderMemberList(query = "") {
+      const normalizedQuery = query.trim().toLowerCase();
+      memberList.replaceChildren();
+      channelMembers
+        .filter((user) => `${user.name} ${user.email}`.toLowerCase().includes(normalizedQuery))
+        .forEach((user) => {
+          const item = createElement("div", "member-list-item");
+          const avatar = createAvatarElement("member-list-avatar", user.icon, "👤", `${user.name}のアイコン`);
+          avatar.dataset.email = user.email;
+          const info = createElement("div");
+          info.append(createElement("div", "member-list-name", user.name), createElement("div", "member-list-email", user.email));
+          item.append(avatar, info);
+          memberList.append(item);
+        });
+    }
+
+    function openMemberModal() {
+      memberModalTitle.textContent = `# ${exchangeChannel.name}`;
+      memberModalTabCount.textContent = String(channelMembers.length);
+      memberModalSearch.value = "";
+      renderMemberList();
+      memberModalBackdrop.classList.add("open");
+      memberModalBackdrop.setAttribute("aria-hidden", "false");
+      memberModalSearch.focus();
+    }
+
+    function closeMemberModal() {
+      memberModalBackdrop.classList.remove("open");
+      memberModalBackdrop.setAttribute("aria-hidden", "true");
+    }
 
     function renderProfilePanel(user) {
       profilePanelBody.replaceChildren();
@@ -1424,6 +1588,7 @@
       closeProfilePanel();
       mobileDmButton.classList.add("active");
       mobileHomeButton.classList.remove("active");
+      document.body.classList.add("mobile-dm-filter");
     }
 
 
@@ -1507,6 +1672,7 @@
         item.classList.toggle("active", item.dataset.email === user.email);
       });
       dmTitle.textContent = user.name;
+      updateMemberCountButton(false);
       updateDmPresenceStatus();
       newMessageBody.dataset.room = user.email;
       renderDmRoom(user);
@@ -1716,6 +1882,7 @@
         item.classList.toggle("active", item.dataset.channel === channel.id);
       });
       dmTitle.textContent = channel.name;
+      updateMemberCountButton(true);
       dmSubtitle.replaceChildren(createElement("span", null, "チャンネル"));
       newMessageBody.dataset.room = channel.id;
       renderChannelRoom(channel);
@@ -1789,6 +1956,7 @@
         closeProfilePanel();
         mobileHomeButton.classList.add("active");
         mobileDmButton.classList.remove("active");
+        document.body.classList.remove("mobile-dm-filter");
       });
     });
 
@@ -1797,6 +1965,7 @@
       setMobileChatOpen(true);
       mobileDmButton.classList.add("active");
       mobileHomeButton.classList.remove("active");
+      document.body.classList.add("mobile-dm-filter");
       recipientInput.focus();
     });
 
@@ -1813,6 +1982,7 @@
       setMobileChatOpen(false);
       mobileDmButton.classList.add("active");
       mobileHomeButton.classList.remove("active");
+      document.body.classList.add("mobile-dm-filter");
     });
 
     mobileHomeButton.addEventListener("click", () => {
@@ -1821,6 +1991,7 @@
       setMobileChatOpen(false);
       mobileHomeButton.classList.add("active");
       mobileDmButton.classList.remove("active");
+      document.body.classList.remove("mobile-dm-filter");
     });
 
     mobileBackButton.addEventListener("click", () => {
@@ -1833,6 +2004,22 @@
     });
 
     profileCloseButton.addEventListener("click", closeProfilePanel);
+    memberCountButton.addEventListener("click", openMemberModal);
+    memberModalClose.addEventListener("click", closeMemberModal);
+    memberModalSearch.addEventListener("input", () => renderMemberList(memberModalSearch.value));
+    memberModalBackdrop.addEventListener("click", (event) => {
+      if (event.target === memberModalBackdrop) closeMemberModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMemberModal();
+    });
+    memberList.addEventListener("click", (event) => {
+      const avatar = event.target.closest(".member-list-avatar");
+      if (!avatar?.dataset.email) return;
+      const user = roomUsers.get(avatar.dataset.email) || channelMembers.find((member) => member.email === avatar.dataset.email);
+      closeMemberModal();
+      openProfilePanel(user);
+    });
 
     profilePanel.addEventListener("click", (event) => {
       const messageButton = event.target.closest('[data-profile-action="message"]');
@@ -1845,7 +2032,7 @@
       const avatar = event.target.closest(".avatar-button");
       if (!avatar) return;
       event.preventDefault();
-      openProfilePanel(avatar.closest(".message") ? (avatar.closest(".message").querySelector(".person-name")?.textContent === currentUserName ? roomUsers.get(currentUserEmail) : activeDmUser) : activeDmUser);
+      openProfilePanel(avatar.closest(".message") ? (getUserByName(avatar.closest(".message").querySelector(".person-name")?.textContent) || activeDmUser) : activeDmUser);
     });
 
     dmList.addEventListener("click", (event) => {
@@ -1860,6 +2047,7 @@
       setMobileChatOpen(true);
       mobileDmButton.classList.add("active");
       mobileHomeButton.classList.remove("active");
+      document.body.classList.add("mobile-dm-filter");
     });
 
     recipientInput.addEventListener("focus", renderSuggestions);
@@ -1902,7 +2090,7 @@
     messagePane.addEventListener("click", (event) => {
       const avatar = event.target.closest(".avatar-button");
       if (avatar) {
-        openProfilePanel(avatar.closest(".message") ? (avatar.closest(".message").querySelector(".person-name")?.textContent === currentUserName ? roomUsers.get(currentUserEmail) : activeDmUser) : activeDmUser);
+        openProfilePanel(avatar.closest(".message") ? (getUserByName(avatar.closest(".message").querySelector(".person-name")?.textContent) || activeDmUser) : activeDmUser);
         return;
       }
       const button = event.target.closest(".reaction-button");
@@ -1920,6 +2108,7 @@
 
     hydratePersistedRooms();
     updateAllDmPreviews();
+    updateMemberCountButton(false);
     renderDmRoom(activeDmUser);
   </script>
 </body>
