@@ -363,7 +363,14 @@
       font-size: 14px;
     }
 
-    .message-pane { flex: 1; min-height: 0; overflow-y: auto; padding: 0 18px 28px; }
+    .message-pane {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 18px 18px 28px;
+      display: flex;
+      flex-direction: column;
+    }
     .dm-menu-row {
       height: 42px;
       border-bottom: 1px solid #eeeeee;
@@ -375,7 +382,8 @@
       font-weight: 700;
     }
     .dm-menu-row span:first-child { color: #111; }
-    .profile-card { margin-top: 175px; display: flex; gap: 12px; align-items: flex-start; }
+    .message-pane > :first-child { margin-top: auto; }
+    .profile-card { display: flex; gap: 12px; align-items: flex-start; }
     .avatar { width: 52px; height: 52px; border-radius: 4px; background: linear-gradient(#69c8ee, #49a9e8); display: grid; place-items: center; font-size: 34px; flex: 0 0 auto; overflow: hidden; }
     .avatar.small { width: 36px; height: 36px; font-size: 24px; }
     .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -1203,7 +1211,7 @@
       <div class="workspace-logo">Mock<br>Slack</div>
       <button class="app-nav-item active nav-home-button" type="button"><span class="app-nav-icon">⌂</span><span>ホーム</span></button>
       <button class="app-nav-item nav-dm-button" type="button"><span class="app-nav-icon">☏</span><span>DM</span></button>
-      <button class="app-nav-item nav-activity-button" type="button"><span class="app-nav-icon">♧</span><span>アクティビティ</span><span class="app-nav-badge">0</span></button>
+      <button class="app-nav-item nav-activity-button" type="button"><span>アクティビティ</span></button>
     </aside>
 
     <aside class="sidebar" aria-label="サイドバー">
@@ -1213,15 +1221,6 @@
         <div class="jump"><span>☰ 会話を移動</span><span>‹ ›</span></div>
       </div>
       <nav class="nav-scroll">
-        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1000-lipple</span></div>
-        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1100-ウェブサイト</span></div>
-        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1101-株式会社ソーシエ...</span></div>
-        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1102-保育事業部-ウェブ...</span></div>
-        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1103-介護事業部-ウェブ...</span></div>
-        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1200-システム</span></div>
-        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1300-採用</span></div>
-        <div class="nav-item dim"><span class="lock">▮</span><span class="name">1900-インターン</span></div>
-        <div class="nav-item dim"><span class="lock">▮</span><span class="name">s001-ツールセットアップ</span></div>
         <div class="nav-item channel-item" data-channel="ste-exchange"><span class="lock">#</span><span class="name">STE_交流用Channnel</span><span class="dm-preview">趣味の話をゆるく投稿する場所です</span><span class="unread-badge">0</span></div>
         <div class="nav-item dim" style="margin-top:16px"><span class="plus">＋</span><span>チャンネルを追加する</span></div>
 
@@ -1375,7 +1374,7 @@
     <div class="mobile-nav-group">
       <button class="mobile-nav-item active mobile-home-button nav-home-button" type="button"><span class="mobile-nav-icon">⌂</span><span>ホーム</span></button>
       <button class="mobile-nav-item mobile-dm-button nav-dm-button" type="button"><span class="mobile-nav-icon">☏</span><span>DM</span></button>
-      <button class="mobile-nav-item mobile-activity-button nav-activity-button" type="button"><span class="mobile-nav-icon">♧</span><span>アクティビティ</span><span class="app-nav-badge">0</span></button>
+      <button class="mobile-nav-item mobile-activity-button nav-activity-button" type="button"><span>アクティビティ</span></button>
       <button class="mobile-nav-item" type="button"><span class="mobile-nav-icon">…</span><span>その他</span></button>
     </div>
     <button class="mobile-search-button" type="button" aria-label="検索">⌕</button>
