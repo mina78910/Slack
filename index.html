@@ -381,6 +381,8 @@
     .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .person-name { font-weight: 800; }
     .tag { color: #1264a3; background: #e7f5ff; border-radius: 3px; padding: 0 2px; }
+    .mention-own { color: #1264a3; background: #fff2b8; border-radius: 3px; padding: 0 3px; font-weight: 700; }
+    .message-text { white-space: pre-line; }
     .intro { margin: 12px 0 32px; font-size: 17px; line-height: 1.45; }
 
     .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: #222; font-size: 13px; font-weight: 700; }
@@ -1356,8 +1358,8 @@
     const channelMembers = allKnownUsers;
     const reactionOptions = ["✅", "👀", "🙌", "😊"];
     const autoReactionEmoji = "🙌";
-    const periodicDmIntervalMs = 15000;
-    const periodicChannelIntervalMs = 22000;
+    const periodicDmIntervalMs = 45000;
+    const periodicChannelIntervalMs = 90000;
     const maxUnreadAutoDmsPerUser = 3;
     const exchangeChannel = { id: "ste-exchange", name: "STE_交流用Channnel", icon: "#" };
     const periodicDmComments = [
@@ -1376,12 +1378,12 @@
     ];
 
     const periodicChannelComments = [
-      "最近、朝の散歩にハマっています🚶‍♂️ いつもの道でも季節の変化が見えて楽しいです。",
-      "週末に新しいカフェを開拓しました☕ 読書しやすい席があって最高でした！",
-      "最近観た映画の余韻がすごいです🎬 みなさんのおすすめ作品も知りたいです。",
-      "ギターの練習を少し再開しました🎸 10分だけでも続けると気分転換になりますね。",
-      "今日はランチにスパイスカレーを作りました🍛 趣味の料理、奥が深いです。",
-      "ランニング用のプレイリストを更新しました🎧 作業BGMのおすすめもあれば教えてください！",
+      "最近、朝の散歩を少し本気の趣味として続けています🚶‍♂️\n朝は空気が澄んでいて、同じ道でも毎日見える景色が違います。\nお気に入りは川沿いの道で、鳥の声を聞きながら歩けるところです。\n最初は運動不足解消のつもりでしたが、今は気持ちを整える時間になりました。\n歩きながら今日やることを3つだけ考えると、仕事にも入りやすいです。\n最近は小さな花や看板など、普段見落としていたものにも気づくようになりました。\nスマホで写真を撮っておくと、あとで見返すのも楽しいです。\n雨の日は無理せず、家でストレッチに切り替えています。\nみなさんも朝や夜のルーティンで続けていることはありますか？\nおすすめの散歩コースや気分転換の方法があればぜひ教えてください。",
+      "週末に新しいカフェを開拓してきました☕\n駅から少し歩いたところにある静かな場所で、席の間隔が広くて落ち着けました。\nコーヒーは浅煎りで、香りが華やかなタイプでした。\n読書をするつもりで行ったのですが、居心地がよくて気づいたら2時間いました。\n店内の音楽も控えめで、作業や考えごとにも向いていそうです。\nデザートのチーズケーキが濃厚で、コーヒーとの相性もかなり良かったです。\n最近はチェーン店だけでなく、個人店を探すのも楽しいなと感じています。\nお店の人の雰囲気があたたかいと、また行きたくなりますね。\n次はノートを持って、ゆっくりアイデア出しをしてみたいです。\nみなさんのおすすめカフェや、集中できる場所があれば知りたいです。",
+      "最近観た映画の余韻がまだ残っています🎬\n派手な展開よりも、登場人物の表情や沈黙で見せるタイプの作品でした。\n観終わった直後より、翌日にじわじわ考えたくなる感じが好きです。\n特に印象的だったのは、何気ない会話の中に伏線がたくさん入っていたところです。\n映像の色味もきれいで、季節感が伝わってくるのが良かったです。\n映画館で観ると音の細かさまで感じられて、やっぱり没入感が違いますね。\n最近は配信で観ることが多かったので、映画館に行く楽しさを思い出しました。\nパンフレットを読むと制作背景も知れて、作品の見え方が少し変わります。\n次は少し明るいコメディも観たい気分です。\nみなさんの最近のおすすめ映画やドラマがあればぜひ教えてください。",
+      "ギターの練習を少し再開しました🎸\nしばらく触っていなかったので、最初は指が全然動かなくてびっくりしました。\nでも10分だけでも毎日弾くと、少しずつ感覚が戻ってくるのが楽しいです。\n今は難しい曲より、コード進行が気持ちいい曲をゆっくり練習しています。\n音がきれいに鳴った瞬間は、短い時間でもかなり良い気分転換になります。\n練習前にチューニングする時間も、なんとなく気持ちを切り替える儀式みたいです。\n最近は動画を見ながら練習できるので、独学でも続けやすくなりました。\nただ、Fコードだけはまだ少し手ごわいです。\n焦らず、週末に1曲通して弾けるくらいを目標にしています。\n楽器をやっている方がいたら、続けるコツやおすすめ曲を教えてください。",
+      "今日はランチにスパイスカレーを作りました🍛\n最近は市販のルーではなく、クミンやコリアンダーを使う作り方に挑戦しています。\n玉ねぎをじっくり炒める時間が一番大変ですが、香りが変わっていくのが面白いです。\nトマトを入れると酸味が出て、味が一気にまとまる感じがします。\n辛さは控えめにして、ヨーグルトで少しまろやかにしました。\n作っている途中から部屋中がカレーの香りになって、食欲が止まらなくなります。\n副菜にきゅうりの浅漬けを添えたら、さっぱりして相性が良かったです。\n料理は段取りを考えるので、仕事とは違う頭の使い方ができて楽しいですね。\n次は豆カレーやキーマカレーにも挑戦してみたいです。\nみなさんの得意料理や、最近作っておいしかったものがあれば教えてください。",
+      "ランニング用のプレイリストを更新しました🎧\n走り始めはテンポがゆっくりめの曲にして、後半に向けて少しずつ上げています。\n音楽があるだけで、同じ距離でも気分がかなり変わりますね。\n最近は歌詞よりリズム重視で選ぶことが多いです。\n途中で好きな曲が流れると、もう少しだけ走ろうという気持ちになります。\n逆にクールダウン用の曲を最後に入れておくと、無理せず終われるのも良いです。\nプレイリストを作る時間自体も、ちょっとした趣味になってきました。\n作業中はインストや環境音を流すことが多く、集中したい時に助かっています。\n音楽の選び方で、その日の気分がわかるのも面白いです。\nみなさんの作業BGMや運動中に聴くおすすめ曲があれば知りたいです。",
     ];
 
     const appShell = document.querySelector(".app-shell");
@@ -1491,7 +1493,9 @@
         item.append(createAvatarElement("avatar small", event.icon, "👤", `${event.sender}のアイコン`));
         const body = createElement("div", "activity-body");
         body.append(createElement("div", "activity-kind", event.type === "reaction" ? `${event.emoji} リアクションされました` : "@メンションされました"));
-        body.append(createElement("div", null, event.text));
+        const activityText = createElement("div", "message-text");
+        appendMessageTextWithMentions(activityText, event.text);
+        body.append(activityText);
         body.append(createElement("div", "activity-meta", `${event.sender} ・ ${event.roomName} ・ ${event.createdAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`));
         item.append(body);
         activityList.append(item);
@@ -1819,7 +1823,9 @@
       const header = createElement("div");
       header.append(createElement("span", "person-name", getDisplaySenderName(messageData.sender)));
       header.append(createElement("span", "time", messageData.sentAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })));
-      content.append(header, createElement("div", null, messageData.text));
+      const textBody = createElement("div", "message-text");
+      appendMessageTextWithMentions(textBody, messageData.text);
+      content.append(header, textBody);
 
       const reactionList = createElement("div", "reaction-list");
       renderReactionList(reactionList, messageData.reactions);
@@ -1836,6 +1842,18 @@
       message.append(avatar, content, toolbar);
       return message;
     }
+    function appendMessageTextWithMentions(container, text) {
+      const mention = `@${currentUserName}`;
+      if (!mention || mention === "@") {
+        container.textContent = text;
+        return;
+      }
+      text.split(mention).forEach((part, index) => {
+        if (index > 0) container.append(createElement("span", "mention-own", mention));
+        if (part) container.append(document.createTextNode(part));
+      });
+    }
+
 
     function renderReactionList(container, reactions) {
       container.replaceChildren();
@@ -2054,9 +2072,9 @@
     }
 
     function startPeriodicMentionDms() {
-      window.setTimeout(sendPeriodicMentionDm, 5000);
+      window.setTimeout(sendPeriodicMentionDm, 12000);
       window.setInterval(sendPeriodicMentionDm, periodicDmIntervalMs);
-      window.setTimeout(sendPeriodicChannelPost, 8000);
+      window.setTimeout(sendPeriodicChannelPost, 30000);
       window.setInterval(sendPeriodicChannelPost, periodicChannelIntervalMs);
     }
 
