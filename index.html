@@ -1044,6 +1044,7 @@
         <div class="nav-item dim"><span class="lock">▮</span><span class="name">1300-採用</span></div>
         <div class="nav-item dim"><span class="lock">▮</span><span class="name">1900-インターン</span></div>
         <div class="nav-item dim"><span class="lock">▮</span><span class="name">s001-ツールセットアップ</span></div>
+        <div class="nav-item channel-item" data-channel="ste-exchange"><span class="lock">#</span><span class="name">STE_交流用Channnel</span><span class="dm-preview">趣味の話をゆるく投稿する場所です</span><span class="unread-badge">0</span></div>
         <div class="nav-item dim" style="margin-top:16px"><span class="plus">＋</span><span>チャンネルを追加する</span></div>
 
         <div class="section-title dm-section"><span>ダイレクトメッセージ</span><button class="new-dm-button" type="button" aria-label="新規メッセージを作成">⊕</button></div>
@@ -1198,6 +1199,9 @@
     const reactionOptions = ["✅", "👀", "🙌", "😊"];
     const autoReactionEmoji = "🙌";
     const periodicDmIntervalMs = 15000;
+    const periodicChannelIntervalMs = 22000;
+    const maxUnreadAutoDmsPerUser = 3;
+    const exchangeChannel = { id: "ste-exchange", name: "STE_交流用Channnel", icon: "#" };
     const periodicDmComments = [
       "@{name} さん、今日の進捗を一緒に確認できたらうれしいです！📌 いつでも頼ってくださいね😊",
       "@{name} さん、次のタスクについて少し相談したいです✨ 一緒に整理できると助かります！",
@@ -1213,6 +1217,15 @@
       "@{name} さん、忙しい中ありがとうございます✨ 無理せず進めていきましょう！",
     ];
 
+    const periodicChannelComments = [
+      "最近、朝の散歩にハマっています🚶‍♂️ いつもの道でも季節の変化が見えて楽しいです。",
+      "週末に新しいカフェを開拓しました☕ 読書しやすい席があって最高でした！",
+      "最近観た映画の余韻がすごいです🎬 みなさんのおすすめ作品も知りたいです。",
+      "ギターの練習を少し再開しました🎸 10分だけでも続けると気分転換になりますね。",
+      "今日はランチにスパイスカレーを作りました🍛 趣味の料理、奥が深いです。",
+      "ランニング用のプレイリストを更新しました🎧 作業BGMのおすすめもあれば教えてください！",
+    ];
+
     const appShell = document.querySelector(".app-shell");
     const main = document.querySelector(".main");
     const newMessageView = document.querySelector(".new-message-view");
@@ -1220,6 +1233,7 @@
     const recipientInput = document.querySelector(".recipient-input");
     const suggestions = document.querySelector(".member-suggestions");
     const dmList = document.querySelector(".dm-list");
+    const channelItems = document.querySelectorAll(".channel-item[data-channel]");
     const messagePane = document.querySelector(".message-pane");
     const newMessageBody = document.querySelector(".new-message-body");
     const dmTitle = document.querySelector(".dm-title");
@@ -1247,6 +1261,7 @@
     let activeDmUser = { name: "Slackbot", icon: "🤖", email: "slackbot@example.com" };
     const savedRooms = [];
     const roomUsers = new Map([...allKnownUsers, ...savedRooms].map((user) => [user.email, user]));
+    const channelMessages = new Map([[exchangeChannel.id, []]]);
     const directMessages = new Map([
       [
         "slackbot@example.com",
@@ -1270,6 +1285,7 @@
     ]);
     const unreadCounts = new Map();
     let periodicDmIndex = 0;
+    let periodicChannelIndex = 0;
 
     function applyPlayerName(name) {
       currentUserName = name?.trim() || "あなた";
@@ -1487,7 +1503,7 @@
       activeDmUser = user;
       unreadCounts.set(user.email, 0);
       updateUnreadBadge(user.email);
-      document.querySelectorAll(".dm-list .nav-item").forEach((item) => {
+      document.querySelectorAll(".dm-list .nav-item, .channel-item[data-channel]").forEach((item) => {
         item.classList.toggle("active", item.dataset.email === user.email);
       });
       dmTitle.textContent = user.name;
@@ -1527,7 +1543,9 @@
       const message = createElement("article", "message");
       message.dataset.messageId = messageData.id;
       const isCurrentUserMessage = messageData.sender === currentUserEmail;
-      const avatar = createAvatarElement("avatar small", isCurrentUserMessage ? currentUserIcon : activeDmUser.icon, "👤", `${getDisplaySenderName(messageData.sender)}のアイコン`);
+      const senderUser = roomUsers.get(messageData.sender);
+      const avatarIcon = isCurrentUserMessage ? currentUserIcon : (senderUser?.icon || activeDmUser.icon);
+      const avatar = createAvatarElement("avatar small", avatarIcon, "👤", `${getDisplaySenderName(messageData.sender)}のアイコン`);
       const content = createElement("div", "message-content");
       const header = createElement("div");
       header.append(createElement("span", "person-name", getDisplaySenderName(messageData.sender)));
@@ -1578,14 +1596,16 @@
         sentAt: new Date(),
         reactions: [],
       });
-      if (!directMessages.has(activeDmUser.email)) directMessages.set(activeDmUser.email, []);
-      directMessages.get(activeDmUser.email).push(messageData);
+      const isChannelRoom = channelMessages.has(activeDmUser.email);
+      const messageStore = isChannelRoom ? channelMessages : directMessages;
+      if (!messageStore.has(activeDmUser.email)) messageStore.set(activeDmUser.email, []);
+      messageStore.get(activeDmUser.email).push(messageData);
       saveMessages();
       renderSentMessage(messageData);
       updateDmPreview(activeDmUser.email);
       input.value = "";
       updateSendState();
-      scheduleAutoReaction(activeDmUser.email, messageData.id);
+      if (!isChannelRoom) scheduleAutoReaction(activeDmUser.email, messageData.id);
     }
 
     function addReaction(roomEmail, messageId, emoji) {
@@ -1611,6 +1631,9 @@
     }
 
     function addIncomingDm(user, text) {
+      const unreadCount = unreadCounts.get(user.email) || 0;
+      const isCurrentRoomOpen = activeDmUser.email === user.email && !main.classList.contains("composer-mode");
+      if (!isCurrentRoomOpen && unreadCount >= maxUnreadAutoDmsPerUser) return;
       buildDirectMessageRoom(user);
       const messageData = normalizeMessage({
         id: `message-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -1622,7 +1645,7 @@
       directMessages.get(user.email).push(messageData);
       saveMessages();
       updateDmPreview(user.email);
-      if (activeDmUser.email === user.email && !main.classList.contains("composer-mode")) {
+      if (isCurrentRoomOpen) {
         renderSentMessage(messageData);
       } else {
         unreadCounts.set(user.email, (unreadCounts.get(user.email) || 0) + 1);
@@ -1631,7 +1654,7 @@
     }
 
     function updateUnreadBadge(email) {
-      const item = dmList.querySelector(`[data-email="${CSS.escape(email)}"]`);
+      const item = document.querySelector(`[data-email="${CSS.escape(email)}"], [data-channel="${CSS.escape(email)}"]`);
       if (!item) return;
       const count = unreadCounts.get(email) || 0;
       item.classList.toggle("unread", count > 0);
@@ -1645,15 +1668,16 @@
     }
 
     function getLatestDmPreview(email) {
-      const messages = directMessages.get(email) || [];
+      const messages = channelMessages.get(email) || directMessages.get(email) || [];
       const latestMessage = messages.at(-1);
       if (!latestMessage) return "まだメッセージはありません";
-      const prefix = latestMessage.sender === currentUserEmail ? "自分: " : "";
+      const senderName = latestMessage.sender === currentUserEmail ? "自分" : getDisplaySenderName(latestMessage.sender);
+      const prefix = channelMessages.has(email) ? `${senderName}: ` : (latestMessage.sender === currentUserEmail ? "自分: " : "");
       return `${prefix}${latestMessage.text}`;
     }
 
     function updateDmPreview(email) {
-      const item = dmList.querySelector(`[data-email="${CSS.escape(email)}"]`);
+      const item = document.querySelector(`[data-email="${CSS.escape(email)}"], [data-channel="${CSS.escape(email)}"]`);
       if (!item) return;
       let preview = item.querySelector(".dm-preview");
       if (!preview) {
@@ -1670,6 +1694,7 @@
 
     function updateAllDmPreviews() {
       dmList.querySelectorAll(".nav-item[data-email]").forEach((item) => updateDmPreview(item.dataset.email));
+      channelItems.forEach((item) => updateDmPreview(item.dataset.channel));
     }
 
     function insertActiveUserMention(input) {
@@ -1681,6 +1706,61 @@
       const caret = start + mention.length;
       input.setSelectionRange(caret, caret);
       updateSendState();
+    }
+
+    function setActiveChannel(channel) {
+      activeDmUser = { name: channel.name, email: channel.id, icon: channel.icon };
+      unreadCounts.set(channel.id, 0);
+      updateUnreadBadge(channel.id);
+      document.querySelectorAll(".dm-list .nav-item, .channel-item[data-channel]").forEach((item) => {
+        item.classList.toggle("active", item.dataset.channel === channel.id);
+      });
+      dmTitle.textContent = channel.name;
+      dmSubtitle.replaceChildren(createElement("span", null, "チャンネル"));
+      newMessageBody.dataset.room = channel.id;
+      renderChannelRoom(channel);
+    }
+
+    function renderChannelRoom(channel) {
+      messagePane.replaceChildren();
+      const profile = createElement("div", "profile-card");
+      profile.append(createElement("div", "avatar", "#"));
+      const details = createElement("div");
+      details.append(createElement("div", "person-name", channel.name));
+      details.append(createElement("div", null, "趣味や雑談を共有する交流用チャンネル"));
+      profile.append(details);
+      const intro = createElement("p", "intro", `${channel.name} へようこそ。趣味の話や気軽な雑談を投稿できます。`);
+      messagePane.append(profile, intro);
+      (channelMessages.get(channel.id) || []).forEach((message) => messagePane.append(createMessageElement(message)));
+      messagePane.scrollTop = messagePane.scrollHeight;
+    }
+
+    function addIncomingChannelMessage(channel, user, text) {
+      if (!channelMessages.has(channel.id)) channelMessages.set(channel.id, []);
+      const messageData = normalizeMessage({
+        id: `message-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        sender: user.email,
+        text,
+        sentAt: new Date(),
+        reactions: [],
+      });
+      channelMessages.get(channel.id).push(messageData);
+      updateDmPreview(channel.id);
+      if (activeDmUser.email === channel.id && !main.classList.contains("composer-mode")) {
+        renderSentMessage(messageData);
+      } else {
+        unreadCounts.set(channel.id, (unreadCounts.get(channel.id) || 0) + 1);
+        updateUnreadBadge(channel.id);
+      }
+    }
+
+    function sendPeriodicChannelPost() {
+      const postUsers = organizationUsers.filter((user) => !removedUserEmails.has(user.email));
+      if (!postUsers.length) return;
+      const user = postUsers[periodicChannelIndex % postUsers.length];
+      const text = periodicChannelComments[periodicChannelIndex % periodicChannelComments.length];
+      periodicChannelIndex += 1;
+      addIncomingChannelMessage(exchangeChannel, user, text);
     }
 
     function sendPeriodicMentionDm() {
@@ -1696,7 +1776,21 @@
     function startPeriodicMentionDms() {
       window.setTimeout(sendPeriodicMentionDm, 5000);
       window.setInterval(sendPeriodicMentionDm, periodicDmIntervalMs);
+      window.setTimeout(sendPeriodicChannelPost, 8000);
+      window.setInterval(sendPeriodicChannelPost, periodicChannelIntervalMs);
     }
+
+    channelItems.forEach((item) => {
+      item.addEventListener("click", () => {
+        selectedUser = null;
+        setActiveChannel(exchangeChannel);
+        activateDmMode();
+        setMobileChatOpen(true);
+        closeProfilePanel();
+        mobileHomeButton.classList.add("active");
+        mobileDmButton.classList.remove("active");
+      });
+    });
 
     newDmButton.addEventListener("click", () => {
       activateComposerMode();
