@@ -382,6 +382,7 @@
     .person-name { font-weight: 800; }
     .tag { color: #1264a3; background: #e7f5ff; border-radius: 3px; padding: 0 2px; }
     .mention-own { color: #1264a3; background: #fff2b8; border-radius: 3px; padding: 0 3px; font-weight: 700; }
+    .mention-outgoing { color: #1264a3; background: #e7f5ff; border-radius: 3px; padding: 0 3px; font-weight: 700; }
     .message-text { white-space: pre-line; }
     .intro { margin: 12px 0 32px; font-size: 17px; line-height: 1.45; }
 
@@ -422,6 +423,12 @@
       background: #f8f8f8;
       padding: 1px 7px;
       font-size: 13px;
+    }
+    .reaction-pill-kusa {
+      border-color: #1f9d55;
+      background: #e6f6ec;
+      color: #0b6b35;
+      font-weight: 700;
     }
     .reply { margin-top: 6px; color: #1264a3; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; }
     .reply .mini-face { width: 24px; height: 24px; border-radius: 4px; background: #64c8ee; display: grid; place-items: center; }
@@ -1010,12 +1017,15 @@
       .message-content { min-width: 0; overflow-wrap: anywhere; }
 
       .reaction-toolbar {
-        position: static;
-        display: flex;
+        position: absolute;
+        top: -6px;
+        right: 0;
+        display: none;
         width: max-content;
-        margin-top: 8px;
-        box-shadow: none;
       }
+
+      .message:hover .reaction-toolbar,
+      .message:focus-within .reaction-toolbar { display: flex; }
 
       .new-message-header { min-height: 104px; }
       .new-message-title-row { height: 54px; }
@@ -1358,6 +1368,7 @@
     const channelMembers = allKnownUsers;
     const reactionOptions = ["✅", "👀", "🙌", "😊"];
     const autoReactionEmoji = "🙌";
+    const kusaReactionEmoji = "草";
     const periodicDmIntervalMs = 45000;
     const periodicChannelIntervalMs = 90000;
     const maxUnreadAutoDmsPerUser = 3;
@@ -1824,7 +1835,7 @@
       header.append(createElement("span", "person-name", getDisplaySenderName(messageData.sender)));
       header.append(createElement("span", "time", messageData.sentAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })));
       const textBody = createElement("div", "message-text");
-      appendMessageTextWithMentions(textBody, messageData.text);
+      appendMessageTextWithMentions(textBody, messageData.text, messageData);
       content.append(header, textBody);
 
       const reactionList = createElement("div", "reaction-list");
@@ -1842,15 +1853,28 @@
       message.append(avatar, content, toolbar);
       return message;
     }
-    function appendMessageTextWithMentions(container, text) {
-      const mention = `@${currentUserName}`;
-      if (!mention || mention === "@") {
+    function appendMessageTextWithMentions(container, text, messageData = null) {
+      const mentionStyles = new Map();
+      const currentUserMention = `@${currentUserName}`;
+      if (currentUserMention !== "@") mentionStyles.set(currentUserMention, "mention-own");
+
+      const isCurrentUserMessage = messageData?.sender === currentUserEmail;
+      if (isCurrentUserMessage && activeDmUser?.name && !channelMessages.has(activeDmUser.email)) {
+        mentionStyles.set(`@${activeDmUser.name}`, "mention-outgoing");
+      }
+
+      const mentions = [...mentionStyles.keys()].filter((mention) => mention && mention !== "@").sort((a, b) => b.length - a.length);
+      if (!mentions.length) {
         container.textContent = text;
         return;
       }
-      text.split(mention).forEach((part, index) => {
-        if (index > 0) container.append(createElement("span", "mention-own", mention));
-        if (part) container.append(document.createTextNode(part));
+
+      const escapedMentions = mentions.map((mention) => mention.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+      const mentionPattern = new RegExp(`(${escapedMentions.join("|")})`, "g");
+      text.split(mentionPattern).forEach((part) => {
+        if (!part) return;
+        const className = mentionStyles.get(part);
+        container.append(className ? createElement("span", className, part) : document.createTextNode(part));
       });
     }
 
@@ -1858,7 +1882,8 @@
     function renderReactionList(container, reactions) {
       container.replaceChildren();
       reactions.forEach((reaction) => {
-        container.append(createElement("span", "reaction-pill", `${reaction.emoji} ${reaction.count}`));
+        const className = reaction.emoji === kusaReactionEmoji ? "reaction-pill reaction-pill-kusa" : "reaction-pill";
+        container.append(createElement("span", className, `${reaction.emoji} ${reaction.count}`));
       });
     }
 
@@ -1892,11 +1917,12 @@
       updateDmPreview(activeDmUser.email);
       input.value = "";
       updateSendState();
-      if (!isChannelRoom) scheduleAutoReaction(activeDmUser.email, messageData.id);
+      if (!isChannelRoom) scheduleAutoReaction(activeDmUser.email, messageData.id, text);
     }
 
     function addReaction(roomEmail, messageId, emoji) {
-      const messages = directMessages.get(roomEmail) || [];
+      const isChannelRoom = channelMessages.has(roomEmail);
+      const messages = (isChannelRoom ? channelMessages : directMessages).get(roomEmail) || [];
       const message = messages.find((item) => item.id === messageId);
       if (!message) return;
       const reaction = message.reactions.find((item) => item.emoji === emoji);
@@ -1910,11 +1936,18 @@
         const reactor = roomUsers.get(roomEmail) || activeDmUser;
         addActivityEvent({ type: "reaction", emoji, sender: reactor.name, icon: reactor.icon, roomName: reactor.name, text: message.text });
       }
-      if (activeDmUser.email === roomEmail) renderDmRoom(activeDmUser);
+      if (activeDmUser.email === roomEmail) {
+        if (isChannelRoom) {
+          renderChannelRoom(exchangeChannel);
+        } else {
+          renderDmRoom(activeDmUser);
+        }
+      }
     }
 
-    function scheduleAutoReaction(roomEmail, messageId) {
-      window.setTimeout(() => addReaction(roomEmail, messageId, autoReactionEmoji), 3000);
+    function scheduleAutoReaction(roomEmail, messageId, text = "") {
+      const emoji = text.trim().endsWith(kusaReactionEmoji) ? kusaReactionEmoji : autoReactionEmoji;
+      window.setTimeout(() => addReaction(roomEmail, messageId, emoji), 3000);
     }
 
     function hydratePersistedRooms() {
