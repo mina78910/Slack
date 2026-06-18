@@ -104,56 +104,72 @@
     .app-shell {
       height: 100vh;
       display: grid;
-      grid-template-columns: 60px 205px minmax(410px, 1fr) 330px;
+      grid-template-columns: 72px 205px minmax(410px, 1fr) 330px;
       overflow: hidden;
     }
 
     .workspace-rail {
       background: var(--aubergine-dark);
       color: white;
-      padding: 8px 10px;
+      padding: 14px 8px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 14px;
+      align-items: stretch;
+      gap: 10px;
     }
 
-    .window-dots {
-      display: flex;
-      gap: 7px;
-      margin-bottom: 4px;
-    }
-
-    .dot { width: 12px; height: 12px; border-radius: 50%; }
-    .dot.red { background: #ff605c; }
-    .dot.yellow { background: #ffbd44; }
-    .dot.green { background: #00ca4e; }
-
-    .workspace-icon,
-    .add-workspace {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
+    .workspace-logo {
+      width: 38px;
+      height: 38px;
+      margin: 0 auto 4px;
+      border-radius: 10px;
       display: grid;
       place-items: center;
-      font-weight: 700;
-    }
-
-    .workspace-icon {
       background: #ffffff;
-      color: #c3193e;
-      border: 2px solid rgba(255,255,255,.8);
+      color: #611f69;
+      font-size: 10px;
+      font-weight: 900;
+      line-height: 1.05;
+      text-align: center;
+    }
+
+    .app-nav-item {
+      appearance: none;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: #ffffff;
+      font: inherit;
       font-size: 11px;
+      font-weight: 800;
+      line-height: 1.15;
+      display: grid;
+      place-items: center;
+      gap: 4px;
+      min-height: 58px;
+      padding: 6px 4px;
+      cursor: pointer;
+      position: relative;
     }
 
-    .workspace-icon.selected { outline: 3px solid #ffffff; }
-
-    .add-workspace {
-      border: 1px solid rgba(255,255,255,.35);
-      color: white;
-      font-size: 26px;
-      background: rgba(255,255,255,.08);
+    .app-nav-item.active { background: rgba(255,255,255,.16); }
+    .app-nav-item:hover, .app-nav-item:focus-visible { background: rgba(255,255,255,.12); outline: none; }
+    .app-nav-icon { font-size: 22px; line-height: 1; }
+    .app-nav-badge {
+      position: absolute;
+      top: 5px;
+      right: 8px;
+      min-width: 17px;
+      height: 17px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: #e01e5a;
+      color: #fff;
+      font-size: 11px;
+      line-height: 17px;
+      display: none;
     }
+    .app-nav-item.has-activity .app-nav-badge, .nav-activity-button.has-activity .app-nav-badge { display: inline-block; }
 
     .sidebar {
       background: var(--aubergine);
@@ -418,7 +434,7 @@
       overflow: hidden;
     }
 
-    .app-shell.profile-open { grid-template-columns: 60px 205px minmax(410px, 1fr) 380px; }
+    .app-shell.profile-open { grid-template-columns: 72px 205px minmax(410px, 1fr) 380px; }
     .app-shell.profile-open .thread { display: none; }
     .app-shell.profile-open .profile-panel { display: flex; }
 
@@ -596,6 +612,7 @@
     .checkbox { width: 14px; height: 14px; border: 1px solid #ccc; border-radius: 2px; display: inline-block; vertical-align: -2px; margin-right: 8px; }
     .send-button { border: 0; border-radius: 4px; background: #ddd; padding: 7px 16px; font-weight: 700; color: #555; }
 
+    .activity-view,
     .new-message-view {
       flex: 1;
       display: none;
@@ -603,6 +620,21 @@
       min-width: 0;
       background: #fff;
     }
+
+    .activity-header {
+      min-height: 96px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 18px 24px;
+    }
+    .activity-header h1 { margin: 0; font-size: 24px; }
+    .activity-header p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+    .activity-list { flex: 1; overflow-y: auto; padding: 10px 18px 28px; }
+    .activity-item { display: flex; gap: 12px; padding: 14px 6px; border-bottom: 1px solid #eeeeee; }
+    .activity-kind { font-weight: 900; margin-bottom: 4px; }
+    .activity-meta { color: var(--muted); font-size: 12px; margin-top: 5px; }
+    .activity-empty { color: var(--muted); padding: 28px 6px; }
 
     .dm-view {
       flex: 1;
@@ -612,8 +644,9 @@
       overflow: hidden;
     }
 
-    .new-message-view.active { display: flex; }
-    .main.composer-mode .dm-view { display: none; }
+    .new-message-view.active, .activity-view.active { display: flex; }
+    .main.composer-mode .dm-view, .main.activity-mode .dm-view { display: none; }
+    .main.activity-mode .new-message-view { display: none; }
     .main:not(.composer-mode) .new-message-view { display: none; }
 
     .new-message-header {
@@ -688,10 +721,10 @@
     .suggestion-email { color: var(--muted); font-size: 12px; margin-top: 2px; }
 
     .app-shell.composer-mode-shell,
-    .app-shell.dm-room-shell { grid-template-columns: 60px 205px minmax(410px, 1fr); }
+    .app-shell.dm-room-shell { grid-template-columns: 72px 205px minmax(410px, 1fr); }
     .app-shell.profile-open,
     .app-shell.dm-room-shell.profile-open,
-    .app-shell.composer-mode-shell.profile-open { grid-template-columns: 60px 205px minmax(410px, 1fr) 380px; }
+    .app-shell.composer-mode-shell.profile-open { grid-template-columns: 72px 205px minmax(410px, 1fr) 380px; }
     .app-shell.composer-mode-shell .thread,
     .app-shell.dm-room-shell .thread { display: none; }
 
@@ -1052,6 +1085,7 @@
         place-items: center;
         gap: 1px;
         cursor: pointer;
+        position: relative;
       }
 
       .mobile-nav-item.active {
@@ -1120,12 +1154,11 @@
   </section>
 
   <div class="app-shell">
-    <aside class="workspace-rail" aria-label="ワークスペース一覧">
-      <div class="window-dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
-      <div class="workspace-icon selected">LIPPLE</div>
-      <div class="workspace-icon">LIPPLE</div>
-      <div class="workspace-icon">lp</div>
-      <div class="add-workspace">+</div>
+    <aside class="workspace-rail" aria-label="メインメニュー">
+      <div class="workspace-logo">Mock<br>Slack</div>
+      <button class="app-nav-item active nav-home-button" type="button"><span class="app-nav-icon">⌂</span><span>ホーム</span></button>
+      <button class="app-nav-item nav-dm-button" type="button"><span class="app-nav-icon">☏</span><span>DM</span></button>
+      <button class="app-nav-item nav-activity-button" type="button"><span class="app-nav-icon">♧</span><span>アクティビティ</span><span class="app-nav-badge">0</span></button>
     </aside>
 
     <aside class="sidebar" aria-label="サイドバー">
@@ -1210,6 +1243,16 @@
         </div>
       </div>
 
+      <section class="activity-view" aria-label="アクティビティ">
+        <header class="activity-header">
+          <div>
+            <h1>アクティビティ</h1>
+            <p>自分あてのメンションと絵文字リアクションをまとめて確認できます。</p>
+          </div>
+        </header>
+        <div class="activity-list"></div>
+      </section>
+
       <section class="new-message-view" aria-label="新規メッセージ">
         <header class="new-message-header">
           <div class="new-message-title-row">
@@ -1276,9 +1319,9 @@
 
   <nav class="mobile-bottom-nav" aria-label="モバイルメニュー">
     <div class="mobile-nav-group">
-      <button class="mobile-nav-item active mobile-home-button" type="button"><span class="mobile-nav-icon">⌂</span><span>ホーム</span></button>
-      <button class="mobile-nav-item mobile-dm-button" type="button"><span class="mobile-nav-icon">☏</span><span>DM</span></button>
-      <button class="mobile-nav-item" type="button"><span class="mobile-nav-icon">♧</span><span>アクティビティ</span></button>
+      <button class="mobile-nav-item active mobile-home-button nav-home-button" type="button"><span class="mobile-nav-icon">⌂</span><span>ホーム</span></button>
+      <button class="mobile-nav-item mobile-dm-button nav-dm-button" type="button"><span class="mobile-nav-icon">☏</span><span>DM</span></button>
+      <button class="mobile-nav-item mobile-activity-button nav-activity-button" type="button"><span class="mobile-nav-icon">♧</span><span>アクティビティ</span><span class="app-nav-badge">0</span></button>
       <button class="mobile-nav-item" type="button"><span class="mobile-nav-icon">…</span><span>その他</span></button>
     </div>
     <button class="mobile-search-button" type="button" aria-label="検索">⌕</button>
@@ -1344,6 +1387,11 @@
     const appShell = document.querySelector(".app-shell");
     const main = document.querySelector(".main");
     const newMessageView = document.querySelector(".new-message-view");
+    const activityView = document.querySelector(".activity-view");
+    const activityList = document.querySelector(".activity-list");
+    const navHomeButtons = document.querySelectorAll(".nav-home-button");
+    const navDmButtons = document.querySelectorAll(".nav-dm-button");
+    const navActivityButtons = document.querySelectorAll(".nav-activity-button");
     const newDmButton = document.querySelector(".new-dm-button");
     const recipientInput = document.querySelector(".recipient-input");
     const suggestions = document.querySelector(".member-suggestions");
@@ -1409,6 +1457,59 @@
     const unreadCounts = new Map();
     let periodicDmIndex = 0;
     let periodicChannelIndex = 0;
+    const activityEvents = [];
+
+    function setPrimaryNavActive(section) {
+      navHomeButtons.forEach((button) => button.classList.toggle("active", section === "home"));
+      navDmButtons.forEach((button) => button.classList.toggle("active", section === "dm"));
+      navActivityButtons.forEach((button) => button.classList.toggle("active", section === "activity"));
+    }
+
+    function updateActivityBadges() {
+      const count = activityEvents.length;
+      navActivityButtons.forEach((button) => {
+        button.classList.toggle("has-activity", count > 0);
+        const badge = button.querySelector(".app-nav-badge");
+        if (badge) badge.textContent = String(count);
+      });
+    }
+
+    function addActivityEvent(event) {
+      activityEvents.unshift({ id: `activity-${Date.now()}-${Math.random().toString(36).slice(2)}`, createdAt: new Date(), ...event });
+      updateActivityBadges();
+      if (main.classList.contains("activity-mode")) renderActivityView();
+    }
+
+    function renderActivityView() {
+      activityList.replaceChildren();
+      if (!activityEvents.length) {
+        activityList.append(createElement("div", "activity-empty", "まだアクティビティはありません。自分あてのメンションやリアクションが届くとここに表示されます。"));
+        return;
+      }
+      activityEvents.forEach((event) => {
+        const item = createElement("article", "activity-item");
+        item.append(createAvatarElement("avatar small", event.icon, "👤", `${event.sender}のアイコン`));
+        const body = createElement("div", "activity-body");
+        body.append(createElement("div", "activity-kind", event.type === "reaction" ? `${event.emoji} リアクションされました` : "@メンションされました"));
+        body.append(createElement("div", null, event.text));
+        body.append(createElement("div", "activity-meta", `${event.sender} ・ ${event.roomName} ・ ${event.createdAt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`));
+        item.append(body);
+        activityList.append(item);
+      });
+    }
+
+    function showActivityView() {
+      closeProfilePanel();
+      appShell.classList.remove("composer-mode-shell");
+      appShell.classList.add("dm-room-shell");
+      main.classList.remove("composer-mode");
+      main.classList.add("activity-mode");
+      newMessageView.classList.remove("active");
+      activityView.classList.add("active");
+      setMobileChatOpen(true);
+      setPrimaryNavActive("activity");
+      renderActivityView();
+    }
 
     function applyPlayerName(name) {
       currentUserName = name?.trim() || "あなた";
@@ -1586,8 +1687,7 @@
       activateDmMode();
       setMobileChatOpen(true);
       closeProfilePanel();
-      mobileDmButton.classList.add("active");
-      mobileHomeButton.classList.remove("active");
+      setPrimaryNavActive("dm");
       document.body.classList.add("mobile-dm-filter");
     }
 
@@ -1618,6 +1718,8 @@
       updateSendState();
       appShell.classList.remove("dm-room-shell");
       appShell.classList.add("composer-mode-shell");
+      main.classList.remove("activity-mode");
+      activityView.classList.remove("active");
       main.classList.add("composer-mode");
       newMessageView.classList.add("active");
     }
@@ -1625,8 +1727,9 @@
     function activateDmMode() {
       appShell.classList.remove("composer-mode-shell");
       appShell.classList.add("dm-room-shell");
-      main.classList.remove("composer-mode");
+      main.classList.remove("composer-mode", "activity-mode");
       newMessageView.classList.remove("active");
+      activityView.classList.remove("active");
     }
 
     function buildDirectMessageRoom(user) {
@@ -1785,6 +1888,10 @@
         message.reactions.push({ emoji, count: 1 });
       }
       saveMessages();
+      if (message.sender === currentUserEmail) {
+        const reactor = roomUsers.get(roomEmail) || activeDmUser;
+        addActivityEvent({ type: "reaction", emoji, sender: reactor.name, icon: reactor.icon, roomName: reactor.name, text: message.text });
+      }
       if (activeDmUser.email === roomEmail) renderDmRoom(activeDmUser);
     }
 
@@ -1809,6 +1916,9 @@
         reactions: [],
       });
       directMessages.get(user.email).push(messageData);
+      if (text.includes(`@${currentUserName}`)) {
+        addActivityEvent({ type: "mention", sender: user.name, icon: user.icon, roomName: user.name, text });
+      }
       saveMessages();
       updateDmPreview(user.email);
       if (isCurrentRoomOpen) {
@@ -1912,6 +2022,9 @@
         reactions: [],
       });
       channelMessages.get(channel.id).push(messageData);
+      if (text.includes(`@${currentUserName}`)) {
+        addActivityEvent({ type: "mention", sender: user.name, icon: user.icon, roomName: `# ${channel.name}`, text });
+      }
       updateDmPreview(channel.id);
       if (activeDmUser.email === channel.id && !main.classList.contains("composer-mode")) {
         renderSentMessage(messageData);
@@ -1954,8 +2067,7 @@
         activateDmMode();
         setMobileChatOpen(true);
         closeProfilePanel();
-        mobileHomeButton.classList.add("active");
-        mobileDmButton.classList.remove("active");
+        setPrimaryNavActive("home");
         document.body.classList.remove("mobile-dm-filter");
       });
     });
@@ -1963,8 +2075,7 @@
     newDmButton.addEventListener("click", () => {
       activateComposerMode();
       setMobileChatOpen(true);
-      mobileDmButton.classList.add("active");
-      mobileHomeButton.classList.remove("active");
+      setPrimaryNavActive("dm");
       document.body.classList.add("mobile-dm-filter");
       recipientInput.focus();
     });
@@ -1972,33 +2083,35 @@
     startForm.addEventListener("submit", (event) => {
       event.preventDefault();
       applyPlayerName(playerNameInput.value);
+      addActivityEvent({ type: "mention", sender: "Slackbot", icon: "🤖", roomName: "Slackbot", text: `@${currentUserName} さん、必要なときはいつでもお手伝いします😊` });
       document.body.classList.add("app-started");
       startPeriodicMentionDms();
     });
 
-    mobileDmButton.addEventListener("click", () => {
+    navDmButtons.forEach((button) => button.addEventListener("click", () => {
       closeProfilePanel();
       activateDmMode();
       setMobileChatOpen(false);
-      mobileDmButton.classList.add("active");
-      mobileHomeButton.classList.remove("active");
+      setPrimaryNavActive("dm");
       document.body.classList.add("mobile-dm-filter");
-    });
+    }));
 
-    mobileHomeButton.addEventListener("click", () => {
+    navHomeButtons.forEach((button) => button.addEventListener("click", () => {
       closeProfilePanel();
       activateDmMode();
       setMobileChatOpen(false);
-      mobileHomeButton.classList.add("active");
-      mobileDmButton.classList.remove("active");
+      setPrimaryNavActive("home");
       document.body.classList.remove("mobile-dm-filter");
-    });
+    }));
+
+    navActivityButtons.forEach((button) => button.addEventListener("click", showActivityView));
 
     mobileBackButton.addEventListener("click", () => {
       closeProfilePanel();
       setMobileChatOpen(false);
-      main.classList.remove("composer-mode");
+      main.classList.remove("composer-mode", "activity-mode");
       newMessageView.classList.remove("active");
+      activityView.classList.remove("active");
       appShell.classList.remove("composer-mode-shell");
       appShell.classList.add("dm-room-shell");
     });
@@ -2045,8 +2158,7 @@
       setActiveDm(user);
       activateDmMode();
       setMobileChatOpen(true);
-      mobileDmButton.classList.add("active");
-      mobileHomeButton.classList.remove("active");
+      setPrimaryNavActive("dm");
       document.body.classList.add("mobile-dm-filter");
     });
 
